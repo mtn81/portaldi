@@ -1,10 +1,5 @@
 use crate::types::DI;
-use std::{
-    any::Any,
-    collections::HashMap,
-    future::Future,
-    sync::{Arc, Mutex},
-};
+use std::{any::Any, collections::HashMap, future::Future, sync::Mutex};
 
 pub struct DIContainer {
     components: Mutex<HashMap<String, DI<dyn Any + Send + Sync>>>,
@@ -33,7 +28,7 @@ impl DIContainer {
         if let Some(c) = self.get::<T>() {
             c
         } else {
-            let c = Arc::new(init());
+            let c = DI::new(init());
             self.put(&c);
             c
         }
@@ -49,7 +44,7 @@ impl DIContainer {
             c
         } else {
             let v = init().await;
-            let c = Arc::new(v);
+            let c = DI::new(v);
             self.put(&c);
             c
         }
