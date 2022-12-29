@@ -5,17 +5,25 @@ use crate::globals::INSTANCE;
 use crate::types::DI;
 
 pub trait DIPortal {
-    type Output: Send + Sync + 'static;
+    // type Output: Send + Sync + 'static;
 
-    fn di_on(container: &DIContainer) -> DI<Self::Output> {
+    fn di_on(container: &DIContainer) -> DI<Self>
+    where
+        Self: Sized + Send + Sync + 'static,
+    {
         container.get_or_init(|| Self::create_for_di(container))
     }
 
-    fn di() -> DI<Self::Output> {
+    fn di() -> DI<Self>
+    where
+        Self: Sized + Send + Sync + 'static,
+    {
         Self::di_on(&INSTANCE)
     }
 
-    fn create_for_di(container: &DIContainer) -> Self::Output;
+    fn create_for_di(container: &DIContainer) -> Self
+    where
+        Self: Send + Sync + 'static;
 }
 
 #[async_trait]
@@ -67,8 +75,7 @@ mod tests {
 
         struct Hoge;
         impl DIPortal for Hoge {
-            type Output = Hoge;
-            fn create_for_di(_container: &DIContainer) -> Hoge {
+            fn create_for_di(_container: &DIContainer) -> Self {
                 Hoge {}
             }
         }
