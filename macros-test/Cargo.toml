@@ -1,10 +1,12 @@
 [package]
-name = "portaldi"
+name = "portaldi-macros-test"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-portaldi-macros = { path = "../macros" }
-portaldi-core = { path = "../core" }
+
+[dev-dependencies]
+portaldi = { path = "../portaldi" }
+
