@@ -1,7 +1,7 @@
 [workspace]
 members = [
-    "core",
-    "macros",
-    "macros-test",
-    "index",
+    "packages/core",
+    "packages/macros",
+    "packages/macros-test",
+    "packages/index",
 ]
