@@ -2,6 +2,7 @@
 mod tests {
     use async_trait::async_trait;
     use portaldi::{AsyncDIPortal, DIPortal, DI};
+    use tokio;
 
     mod concrete_type {
         use super::*;
@@ -43,23 +44,24 @@ mod tests {
             }
 
             #[test]
-            fn test_di_concrete_type() {
+            fn test_di() {
                 assert!(Hoge::di() == Hoge::di())
             }
         }
 
         mod async_test {
             use super::*;
-            #[derive(DIPortal)]
+            #[derive(DIPortal, PartialEq)]
             struct AHoge {
                 foo: DI<AFoo>,
                 #[inject(async)]
                 bar: DI<ABar>,
             }
 
-            #[derive(DIPortal)]
+            #[derive(DIPortal, PartialEq)]
             struct AFoo {}
 
+            #[derive(PartialEq)]
             struct ABar {}
 
             #[async_trait]
@@ -67,6 +69,11 @@ mod tests {
                 async fn create_for_di(_container: &portaldi::DIContainer) -> Self {
                     ABar {}
                 }
+            }
+
+            #[tokio::test]
+            async fn test_di() {
+                assert!(AHoge::di().await == AHoge::di().await)
             }
         }
     }

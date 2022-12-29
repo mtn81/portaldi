@@ -10,4 +10,5 @@ edition = "2021"
 [dev-dependencies]
 portaldi = { path = "../portaldi" }
 async-trait = "0.1"
+tokio = { version = "1", features = ["full"] }
 

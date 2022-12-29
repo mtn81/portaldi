@@ -226,6 +226,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "portaldi",
+ "tokio",
 ]
 
 [[package]]
