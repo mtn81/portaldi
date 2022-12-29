@@ -53,13 +53,13 @@ mod tests {
             use super::*;
             #[derive(DIPortal, PartialEq)]
             struct AHoge {
-                foo: DI<AFoo>,
+                foo: DI<Foo>,
                 #[inject(async)]
                 bar: DI<ABar>,
             }
 
             #[derive(DIPortal, PartialEq)]
-            struct AFoo {}
+            struct Foo {}
 
             #[derive(PartialEq)]
             struct ABar {}
