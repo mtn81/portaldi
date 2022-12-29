@@ -1,40 +1,73 @@
 #[cfg(test)]
 mod tests {
-    use portaldi::{DIPortal, DI};
+    use async_trait::async_trait;
+    use portaldi::{AsyncDIPortal, DIPortal, DI};
 
-    #[derive(DIPortal)]
-    struct Hoge {
-        foo: DI<Foo>,
-        bar: DI<Bar>,
-    }
+    mod concrete_type {
+        use super::*;
 
-    impl PartialEq for Hoge {
-        fn eq(&self, other: &Self) -> bool {
-            std::ptr::eq(self as *const _, other as *const _)
-                && std::ptr::eq(
-                    self.foo.as_ref() as *const _,
-                    other.foo.as_ref() as *const _,
-                )
-                && std::ptr::eq(
-                    self.bar.as_ref() as *const _,
-                    other.bar.as_ref() as *const _,
-                )
+        mod sync_test {
+            use super::*;
+
+            #[derive(DIPortal)]
+            struct Hoge {
+                foo: DI<Foo>,
+                bar: DI<Bar>,
+            }
+
+            impl PartialEq for Hoge {
+                fn eq(&self, other: &Self) -> bool {
+                    fn ptr_eq<T>(ref1: &T, ref2: &T) -> bool {
+                        std::ptr::eq(ref1 as *const _, ref2 as *const _)
+                    }
+                    ptr_eq(self, other)
+                        && ptr_eq(self.foo.as_ref(), other.foo.as_ref())
+                        && ptr_eq(self.bar.as_ref(), other.bar.as_ref())
+                        && ptr_eq(self.foo.bar.as_ref(), other.foo.bar.as_ref())
+                        && ptr_eq(self.foo.bar.as_ref(), self.bar.as_ref())
+                        && ptr_eq(other.foo.bar.as_ref(), other.bar.as_ref())
+                }
+            }
+
+            #[derive(DIPortal)]
+            struct Foo {
+                bar: DI<Bar>,
+            }
+
+            struct Bar {}
+            // implements manually
+            impl DIPortal for Bar {
+                fn create_for_di(_container: &portaldi::DIContainer) -> Self {
+                    Bar {}
+                }
+            }
+
+            #[test]
+            fn test_di_concrete_type() {
+                assert!(Hoge::di() == Hoge::di())
+            }
         }
-    }
 
-    #[derive(DIPortal)]
-    struct Foo {}
+        mod async_test {
+            use super::*;
+            #[derive(DIPortal)]
+            struct AHoge {
+                foo: DI<AFoo>,
+                #[inject(async)]
+                bar: DI<ABar>,
+            }
 
-    struct Bar {}
-    // implements manually
-    impl DIPortal for Bar {
-        fn create_for_di(_container: &portaldi::DIContainer) -> Self {
-            Bar {}
+            #[derive(DIPortal)]
+            struct AFoo {}
+
+            struct ABar {}
+
+            #[async_trait]
+            impl AsyncDIPortal for ABar {
+                async fn create_for_di(_container: &portaldi::DIContainer) -> Self {
+                    ABar {}
+                }
+            }
         }
-    }
-
-    #[test]
-    fn test_di_concrete_type() {
-        assert!(Hoge::di() == Hoge::di())
     }
 }

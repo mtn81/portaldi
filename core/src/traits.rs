@@ -21,26 +21,28 @@ pub trait DIPortal {
         Self::di_on(&INSTANCE)
     }
 
-    fn create_for_di(container: &DIContainer) -> Self
-    where
-        Self: Send + Sync + 'static;
+    fn create_for_di(container: &DIContainer) -> Self;
 }
 
 #[async_trait]
 pub trait AsyncDIPortal {
-    type Output: Send + Sync + 'static;
-
-    async fn di_on(container: &DIContainer) -> DI<Self::Output> {
+    async fn di_on(container: &DIContainer) -> DI<Self>
+    where
+        Self: Sized + Send + Sync + 'static,
+    {
         container
             .get_or_init_async(|| Self::create_for_di(container))
             .await
     }
 
-    async fn di() -> DI<Self::Output> {
+    async fn di() -> DI<Self>
+    where
+        Self: Sized + Send + Sync + 'static,
+    {
         Self::di_on(&INSTANCE).await
     }
 
-    async fn create_for_di(container: &DIContainer) -> Self::Output;
+    async fn create_for_di(container: &DIContainer) -> Self;
 }
 
 pub trait DIProvider {
@@ -112,8 +114,7 @@ mod tests {
         struct AsyncHoge;
         #[async_trait]
         impl AsyncDIPortal for AsyncHoge {
-            type Output = AsyncHoge;
-            async fn create_for_di(_container: &DIContainer) -> AsyncHoge {
+            async fn create_for_di(_container: &DIContainer) -> Self {
                 AsyncHoge {}
             }
         }

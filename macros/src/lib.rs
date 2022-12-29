@@ -200,16 +200,17 @@ fn build_portal(
 ) -> proc_macro2::TokenStream {
     if is_async {
         quote! {
-            impl portaldi::DIPortal for #ident {
-                async fn create_for_di(container: &portaldi::DIContainer) -> #ident {
-                    #ident { #(#field_di_quotes)* }.await
+            #[async_trait::async_trait]
+            impl portaldi::AsyncDIPortal for #ident {
+                async fn create_for_di(container: &portaldi::DIContainer) -> Self {
+                    #ident { #(#field_di_quotes)* }
                 }
             }
         }
     } else {
         quote! {
             impl portaldi::DIPortal for #ident {
-                fn create_for_di(container: &portaldi::DIContainer) -> #ident {
+                fn create_for_di(container: &portaldi::DIContainer) -> Self {
                     #ident { #(#field_di_quotes)* }
                 }
             }

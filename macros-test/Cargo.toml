@@ -9,4 +9,5 @@ edition = "2021"
 
 [dev-dependencies]
 portaldi = { path = "../portaldi" }
+async-trait = "0.1"
 
