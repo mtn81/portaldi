@@ -27,7 +27,7 @@ impl DIContainer {
 
     pub fn get_or_init<T, F>(&self, init: F) -> DI<T>
     where
-        T: Send + Sync + 'static,
+        T: Sized + Send + Sync + 'static,
         F: Fn() -> T,
     {
         if let Some(c) = self.get::<T>() {
