@@ -23,7 +23,7 @@ mod tests {
                 foo2: DI<dyn foo::Foo>,
                 // di by implicit Provider (BarImpl)
                 bar1: DI<dyn Bar>,
-                // di by explicit "inject"
+                // di by explicit type in "inject"
                 #[inject(BarImpl2)]
                 bar2: DI<dyn Bar>,
             }
@@ -68,10 +68,10 @@ mod tests {
             use foo::*;
             #[derive(DIPortal)]
             struct Hoge {
-                // async di by explicit Provider
+                // async di by Provider
                 #[inject(async)]
                 foo1: DI<dyn Foo>,
-                // async di by explicit Provider
+                // async di by explicit type
                 #[inject(FooImpl2, async)]
                 foo2: DI<dyn Foo>,
                 // async di by implicit Provider

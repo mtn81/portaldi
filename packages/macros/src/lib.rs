@@ -57,6 +57,7 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
+    // TODO check impl target is DIPortal or AsyncDIPortal
     let item_impl = parse_macro_input!(item as ItemImpl);
     let attr_args = parse_macro_input!(attr as AttributeArgs);
 
