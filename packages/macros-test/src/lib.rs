@@ -198,4 +198,8 @@ mod tests {
             }
         }
     }
+
+    mod di_for_complex_component_creation {
+        // TODO
+    }
 }

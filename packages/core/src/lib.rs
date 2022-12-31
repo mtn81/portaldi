@@ -1,4 +1,4 @@
 pub mod container;
-pub mod globals;
+mod globals;
 pub mod traits;
 pub mod types;
