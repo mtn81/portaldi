@@ -8,7 +8,7 @@ mod tests {
         std::ptr::eq(ref1 as *const _, ref2 as *const _)
     }
 
-    mod provider {
+    mod di_for_trait {
         use super::*;
         mod sync_test {
             use super::*;
@@ -121,14 +121,15 @@ mod tests {
                 }
             }
 
-            #[test]
-            fn test_di() {
-                let hoge = Hoge::di();
+            #[tokio::test]
+            async fn test_di() {
+                let hoge = Hoge::di().await;
+                assert!(!ptr_eq(hoge.foo1.as_ref(), hoge.foo2.as_ref()));
             }
         }
     }
 
-    mod concrete_type {
+    mod di_for_concrete_type {
         use super::*;
         mod sync_test {
             use super::*;
