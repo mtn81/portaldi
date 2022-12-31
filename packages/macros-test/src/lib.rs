@@ -20,8 +20,11 @@ mod tests {
                 foo1: DI<dyn Foo>,
                 // di by "provide" & Path
                 foo2: DI<dyn foo::Foo>,
-                // di by implicit Provider pattern
-                bar: DI<dyn Bar>,
+                // di by implicit Provider (BarImpl)
+                bar1: DI<dyn Bar>,
+                // di by explicit "inject"
+                #[inject(BarImpl2)]
+                bar2: DI<dyn Bar>,
             }
 
             mod foo {
@@ -39,13 +42,17 @@ mod tests {
 
             #[derive(DIPortal)]
             struct BarImpl {}
-
             impl Bar for BarImpl {}
+
+            #[derive(DIPortal)]
+            struct BarImpl2 {}
+            impl Bar for BarImpl2 {}
 
             #[test]
             fn test_di() {
                 let hoge = Hoge::di();
                 assert!(ptr_eq(hoge.foo1.as_ref(), hoge.foo2.as_ref()));
+                assert!(!ptr_eq(hoge.bar1.as_ref(), hoge.bar2.as_ref()));
             }
         }
     }
