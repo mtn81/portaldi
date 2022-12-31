@@ -77,7 +77,7 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
         .items
         .iter()
         .find_map(|item| match item {
-            ImplItem::Method(m) if m.sig.ident == "di" => Some(m),
+            ImplItem::Method(m) if m.sig.ident == "create_for_di" => Some(m),
             _ => None,
         })
         .expect("'di' method must be defined.");
@@ -88,6 +88,12 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
         || build_provider_by_env(&ident, is_async),
         |target| build_provider(&ident, &target, is_async),
     );
+
+    let q = quote! {
+        #item_impl
+        #provider_quote
+    };
+    println!("check !!!! {:}", q.to_string());
 
     quote! {
         #item_impl
@@ -156,7 +162,9 @@ fn build_provider(
     if is_async {
         quote! {
             pub struct #provider_type;
-            impl portaldi::DIProvider for #provider_type {
+
+            #[async_trait::async_trait]
+            impl portaldi::AsyncDIProvider for #provider_type {
                 type Output = dyn #provide_target;
                 async fn di_on(container: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
                     #ident::di_on(container).await

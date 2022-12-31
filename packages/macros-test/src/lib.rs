@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use async_trait::async_trait;
-    use portaldi::{AsyncDIPortal, DIPortal, DIProvider, DI};
+    use portaldi::{AsyncDIPortal, AsyncDIProvider, DIContainer, DIPortal, DIProvider, DI};
     use tokio;
 
     fn ptr_eq<T: ?Sized>(ref1: &T, ref2: &T) -> bool {
@@ -13,6 +13,7 @@ mod tests {
         mod sync_test {
             use super::*;
 
+            use bar::*;
             use foo::*;
             #[derive(DIPortal)]
             struct Hoge {
@@ -38,21 +39,91 @@ mod tests {
                 impl Foo for FooImpl {}
             }
 
-            pub trait Bar: Sync + Send {}
+            mod bar {
+                use super::*;
 
-            #[derive(DIPortal)]
-            struct BarImpl {}
-            impl Bar for BarImpl {}
+                pub trait Bar: Sync + Send {}
 
-            #[derive(DIPortal)]
-            struct BarImpl2 {}
-            impl Bar for BarImpl2 {}
+                #[derive(DIPortal)]
+                struct BarImpl {}
+                impl Bar for BarImpl {}
+
+                #[derive(DIPortal)]
+                pub struct BarImpl2 {}
+                impl Bar for BarImpl2 {}
+            }
 
             #[test]
             fn test_di() {
                 let hoge = Hoge::di();
                 assert!(ptr_eq(hoge.foo1.as_ref(), hoge.foo2.as_ref()));
                 assert!(!ptr_eq(hoge.bar1.as_ref(), hoge.bar2.as_ref()));
+            }
+        }
+
+        mod async_test {
+            use super::*;
+
+            use bar::*;
+            use foo::*;
+            #[derive(DIPortal)]
+            struct Hoge {
+                // async di by explicit Provider
+                #[inject(async)]
+                foo1: DI<dyn Foo>,
+                // async di by explicit Provider
+                #[inject(FooImpl2, async)]
+                foo2: DI<dyn Foo>,
+                // async di by implicit Provider
+                #[inject(async)]
+                bar1: DI<dyn Bar>,
+            }
+
+            mod foo {
+                use super::*;
+                pub trait Foo: Sync + Send {}
+
+                struct FooImpl {}
+                impl Foo for FooImpl {}
+
+                #[portaldi::provider(Foo)]
+                #[async_trait]
+                impl AsyncDIPortal for FooImpl {
+                    async fn create_for_di(_container: &DIContainer) -> Self {
+                        FooImpl {}
+                    }
+                }
+
+                pub struct FooImpl2 {}
+                impl Foo for FooImpl2 {}
+
+                #[async_trait]
+                impl AsyncDIPortal for FooImpl2 {
+                    async fn create_for_di(_container: &DIContainer) -> Self {
+                        FooImpl2 {}
+                    }
+                }
+            }
+
+            mod bar {
+                use super::*;
+                pub trait Bar: Sync + Send {}
+
+                struct BarImpl {}
+                impl Bar for BarImpl {}
+
+                #[portaldi::provider]
+                #[async_trait]
+                impl AsyncDIPortal for BarImpl {
+                    async fn create_for_di(_container: &DIContainer) -> Self {
+                        BarImpl {}
+                    }
+                }
+            }
+
+            #[test]
+            fn test_di() {
+                let hoge = Hoge::di();
             }
         }
     }
@@ -70,9 +141,6 @@ mod tests {
 
             impl PartialEq for Hoge {
                 fn eq(&self, other: &Self) -> bool {
-                    fn ptr_eq<T>(ref1: &T, ref2: &T) -> bool {
-                        std::ptr::eq(ref1 as *const _, ref2 as *const _)
-                    }
                     ptr_eq(self, other)
                         && ptr_eq(self.foo.as_ref(), other.foo.as_ref())
                         && ptr_eq(self.bar.as_ref(), other.bar.as_ref())
