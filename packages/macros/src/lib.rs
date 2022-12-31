@@ -157,8 +157,8 @@ fn build_provider(
         quote! {
             pub struct #provider_type;
             impl portaldi::DIProvider for #provider_type {
-                type Output = dyn #provide_target
-                async fn di_on(container: portaldi::&Container) -> portaldi::DI<Self::Output> {
+                type Output = dyn #provide_target;
+                async fn di_on(container: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
                     #ident::di_on(container).await
                 }
             }
@@ -167,7 +167,8 @@ fn build_provider(
         quote! {
             pub struct #provider_type;
             impl portaldi::DIProvider for #provider_type {
-                fn di_on(container: portaldi::&Container) -> portaldi::DI<dyn #provide_target> {
+                type Output = dyn #provide_target;
+                fn di_on(container: &portaldi::DIContainer) -> portaldi::DI<dyn #provide_target> {
                     #ident::di_on(container)
                 }
             }

@@ -1,12 +1,57 @@
 #[cfg(test)]
 mod tests {
     use async_trait::async_trait;
-    use portaldi::{AsyncDIPortal, DIPortal, DI};
+    use portaldi::{AsyncDIPortal, DIPortal, DIProvider, DI};
     use tokio;
+
+    fn ptr_eq<T: ?Sized>(ref1: &T, ref2: &T) -> bool {
+        std::ptr::eq(ref1 as *const _, ref2 as *const _)
+    }
+
+    mod provider {
+        use super::*;
+        mod sync_test {
+            use super::*;
+
+            use foo::*;
+            #[derive(DIPortal)]
+            struct Hoge {
+                // di by "provide" & Ident
+                foo1: DI<dyn Foo>,
+                // di by "provide" & Path
+                foo2: DI<dyn foo::Foo>,
+                // di by implicit Provider pattern
+                bar: DI<dyn Bar>,
+            }
+
+            mod foo {
+                use super::*;
+                pub trait Foo: Sync + Send {}
+
+                #[derive(DIPortal, PartialEq)]
+                #[provide(Foo)]
+                struct FooImpl {}
+
+                impl Foo for FooImpl {}
+            }
+
+            pub trait Bar: Sync + Send {}
+
+            #[derive(DIPortal)]
+            struct BarImpl {}
+
+            impl Bar for BarImpl {}
+
+            #[test]
+            fn test_di() {
+                let hoge = Hoge::di();
+                assert!(ptr_eq(hoge.foo1.as_ref(), hoge.foo2.as_ref()));
+            }
+        }
+    }
 
     mod concrete_type {
         use super::*;
-
         mod sync_test {
             use super::*;
 

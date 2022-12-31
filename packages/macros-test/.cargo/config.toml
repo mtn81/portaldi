@@ -1,0 +1,2 @@
+[env]
+DRYDI_PROVIDER_PATTERN = "^(\\S+)Impl$"
