@@ -37,11 +37,11 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
                 build_provider_by_env(&ident, is_totally_async)
             };
 
-            let q = quote! {
-                #provider_quote
-                #di_portal_quote
-            };
-            println!("check !!!! {:}", q.to_string());
+            // let q = quote! {
+            //     #provider_quote
+            //     #di_portal_quote
+            // };
+            // println!("check !!!! {:}", q.to_string());
 
             quote! {
                 #provider_quote
@@ -61,7 +61,17 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item_impl = parse_macro_input!(item as ItemImpl);
     let attr_args = parse_macro_input!(attr as AttributeArgs);
 
-    dbg!(&item_impl.self_ty);
+    // dbg!(&item_impl.trait_);
+    let is_portal_impl = match &item_impl.trait_ {
+        Some((_, p, _)) => p
+            .segments
+            .iter()
+            .any(|s| s.ident == "DIPortal" || s.ident == "AsyncDIPortal"),
+        _ => false,
+    };
+    if !is_portal_impl {
+        panic!("[provider] must be on DIPortal or AsyncDIPortal")
+    }
 
     let ident = match *item_impl.self_ty {
         Type::Path(ref p) => p.path.get_ident(),
@@ -90,11 +100,11 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
         |target| build_provider(&ident, &target, is_async),
     );
 
-    let q = quote! {
-        #item_impl
-        #provider_quote
-    };
-    println!("check !!!! {:}", q.to_string());
+    // let q = quote! {
+    //     #item_impl
+    //     #provider_quote
+    // };
+    // println!("check !!!! {:}", q.to_string());
 
     quote! {
         #item_impl
@@ -126,12 +136,9 @@ fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
         }
 
         if let PathArguments::AngleBracketed(x) = &first_path_segment.arguments {
-            // println!("!!!!! {:?}", &x);
             match x.args.first().unwrap() {
                 GenericArgument::Type(Type::TraitObject(x)) => {
                     if let TypeParamBound::Trait(x) = x.bounds.first().unwrap() {
-                        // println!("!!!!!");
-                        // println!("{:?}", x.path.get_ident().unwrap());
                         return Some(DIType::Trait {
                             type_ident: &x.path.segments.last().unwrap().ident,
                         });
@@ -142,13 +149,6 @@ fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
                 }
                 _ => return None,
             }
-            // if let GenericArgument::Type(Type::TraitObject(x)) = x.args.first().unwrap() {
-            //     if let TypeParamBound::Trait(x) = x.bounds.first().unwrap() {
-            //         // println!("!!!!!");
-            //         // println!("{:?}", x.path.get_ident().unwrap());
-            //         return Some(x.path.get_ident().unwrap());
-            //     }
-            // }
         }
     }
     return None;
