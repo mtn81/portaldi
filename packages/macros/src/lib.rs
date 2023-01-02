@@ -187,7 +187,7 @@ fn build_provider(
 
 fn build_provider_by_env(ident: &Ident, is_async: bool) -> proc_macro2::TokenStream {
     let ident_str = &ident.to_string();
-    let provider_target_cap = std::env::var("DRYDI_PROVIDER_PATTERN")
+    let provider_target_cap = std::env::var("PORTALDI_PROVIDER_PATTERN")
         .ok()
         .as_ref()
         .and_then(|pattern| {

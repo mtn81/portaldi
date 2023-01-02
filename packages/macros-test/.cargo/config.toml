@@ -1,2 +1,2 @@
 [env]
-DRYDI_PROVIDER_PATTERN = "^(\\S+)Impl$"
+PORTALDI_PROVIDER_PATTERN = "^(\\S+)Impl$"
