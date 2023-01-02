@@ -8,3 +8,8 @@ edition = "2021"
 [dependencies]
 portaldi-macros = { path = "../macros" }
 portaldi-core = { path = "../core" }
+
+[dev-dependencies]
+async-trait = "0.1"
+tokio = { version = "1", features = ["full"] }
+
