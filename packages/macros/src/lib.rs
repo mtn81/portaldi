@@ -73,8 +73,9 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
         panic!("[provider] must be on DIPortal or AsyncDIPortal")
     }
 
+    dbg!(&item_impl.self_ty);
     let ident = match *item_impl.self_ty {
-        Type::Path(ref p) => p.path.get_ident(),
+        Type::Path(ref p) => p.path.segments.first().map(|s| &s.ident),
         _ => None,
     }
     .expect("impl type name not found.");
