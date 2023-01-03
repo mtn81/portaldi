@@ -1,0 +1,2 @@
+[env]
+PORTALDI_PROVIDER_PATTERN = "^(\\S+)Impl$"
