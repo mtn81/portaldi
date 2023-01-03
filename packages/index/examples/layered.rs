@@ -89,7 +89,7 @@ mod repo {
     }
 
     #[async_trait]
-    impl<'a> HogeRepository for InMemoryHogeRepository {
+    impl HogeRepository for InMemoryHogeRepository {
         async fn save(&self, hoge: &Hoge) -> () {
             self.datas.lock().unwrap().insert(hoge.id, hoge.clone());
         }
