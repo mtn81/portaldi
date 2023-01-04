@@ -1,7 +1,21 @@
+[package]
+name = "portaldi"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+portaldi-macros = { path = "packages/macros" }
+portaldi-core = { path = "packages/core" }
+
+[dev-dependencies]
+async-trait = "0.1"
+tokio = { version = "1", features = ["full"] }
+
+
 [workspace]
 members = [
     "packages/core",
     "packages/macros",
-    "packages/macros-test",
-    "packages/index",
 ]
