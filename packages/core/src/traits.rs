@@ -4,19 +4,21 @@ use crate::container::DIContainer;
 use crate::globals::INSTANCE;
 use crate::types::DI;
 
-pub trait DIPortal {
-    // type Output: Send + Sync + 'static;
+pub trait DITarget: Send + Sync + 'static {}
 
+impl<T: Send + Sync + 'static> DITarget for T {}
+
+pub trait DIPortal {
     fn di_on(container: &DIContainer) -> DI<Self>
     where
-        Self: Sized + Send + Sync + 'static,
+        Self: Sized + DITarget,
     {
         container.get_or_init(|| Self::create_for_di(container))
     }
 
     fn di() -> DI<Self>
     where
-        Self: Sized + Send + Sync + 'static,
+        Self: Sized + DITarget,
     {
         Self::di_on(&INSTANCE)
     }
@@ -28,7 +30,7 @@ pub trait DIPortal {
 pub trait AsyncDIPortal {
     async fn di_on(container: &DIContainer) -> DI<Self>
     where
-        Self: Sized + Send + Sync + 'static,
+        Self: Sized + DITarget,
     {
         container
             .get_or_init_async(|| Self::create_for_di(container))
@@ -37,7 +39,7 @@ pub trait AsyncDIPortal {
 
     async fn di() -> DI<Self>
     where
-        Self: Sized + Send + Sync + 'static,
+        Self: Sized + DITarget,
     {
         Self::di_on(&INSTANCE).await
     }

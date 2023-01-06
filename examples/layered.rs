@@ -66,7 +66,7 @@ mod domain {
     }
 
     #[async_trait]
-    pub trait HogeRepository: Send + Sync {
+    pub trait HogeRepository: DITarget {
         async fn save(&self, hoge: &Hoge) -> ();
         async fn get(&self, id: u8) -> Option<Hoge>;
     }

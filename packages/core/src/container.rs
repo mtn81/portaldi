@@ -1,4 +1,4 @@
-use crate::types::DI;
+use crate::{traits::DITarget, types::DI};
 use std::{any::Any, collections::HashMap, future::Future, sync::Mutex};
 
 pub struct DIContainer {
@@ -12,7 +12,7 @@ impl DIContainer {
         }
     }
 
-    pub fn get<T: Send + Sync + 'static>(&self) -> Option<DI<T>> {
+    pub fn get<T: DITarget>(&self) -> Option<DI<T>> {
         self.components
             .lock()
             .unwrap()
@@ -22,7 +22,7 @@ impl DIContainer {
 
     pub fn get_or_init<T, F>(&self, init: F) -> DI<T>
     where
-        T: Send + Sync + 'static,
+        T: DITarget,
         F: Fn() -> T,
     {
         if let Some(c) = self.get::<T>() {
@@ -36,7 +36,7 @@ impl DIContainer {
 
     pub async fn get_or_init_async<T, F, Fut>(&self, init: F) -> DI<T>
     where
-        T: Send + Sync + 'static,
+        T: DITarget,
         F: Fn() -> Fut,
         Fut: Future<Output = T>,
     {
@@ -50,7 +50,7 @@ impl DIContainer {
         }
     }
 
-    pub fn put<T: Send + Sync + 'static>(&self, c: &DI<T>) {
+    pub fn put<T: DITarget>(&self, c: &DI<T>) {
         self.components
             .lock()
             .unwrap()

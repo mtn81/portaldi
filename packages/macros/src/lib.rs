@@ -57,7 +57,6 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
-    // TODO check impl target is DIPortal or AsyncDIPortal
     let item_impl = parse_macro_input!(item as ItemImpl);
     let attr_args = parse_macro_input!(attr as AttributeArgs);
 
@@ -209,8 +208,13 @@ fn build_portal(
     field_di_quotes: Vec<&proc_macro2::TokenStream>,
     is_async: bool,
 ) -> proc_macro2::TokenStream {
+    let di_target_quote = quote! {
+        impl portaldi::DITarget for #ident {}
+    };
     if is_async {
         quote! {
+            // #di_target_quote
+
             #[async_trait::async_trait]
             impl portaldi::AsyncDIPortal for #ident {
                 async fn create_for_di(container: &portaldi::DIContainer) -> Self {
@@ -220,6 +224,8 @@ fn build_portal(
         }
     } else {
         quote! {
+            // #di_target_quote
+
             impl portaldi::DIPortal for #ident {
                 fn create_for_di(container: &portaldi::DIContainer) -> Self {
                     #ident { #(#field_di_quotes)* }
