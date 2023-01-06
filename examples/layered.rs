@@ -66,7 +66,7 @@ mod domain {
     }
 
     #[async_trait]
-    pub trait HogeRepository: Send + Sync {
+    pub trait HogeRepository: DITarget {
         async fn save(&self, hoge: &Hoge) -> ();
         async fn get(&self, id: u8) -> Option<Hoge>;
     }
@@ -82,7 +82,7 @@ mod repo {
     }
 
     #[portaldi::provider(HogeRepository)]
-    impl<'a> DIPortal for InMemoryHogeRepository {
+    impl DIPortal for InMemoryHogeRepository {
         fn create_for_di(_container: &DIContainer) -> Self {
             InMemoryHogeRepository::default()
         }

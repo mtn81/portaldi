@@ -1,4 +1,9 @@
+//! Defines core functionalities.
+
+// export modules
 pub mod container;
-mod globals;
 pub mod traits;
 pub mod types;
+
+// privete modules
+mod globals;

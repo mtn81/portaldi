@@ -1,3 +1,5 @@
+//! proc-macros for generate trait implementations.
+
 use proc_macro::TokenStream;
 use quote::quote;
 use regex::Regex;
@@ -6,6 +8,32 @@ use syn::{
     ImplItem, ItemImpl, Meta, NestedMeta, Path, PathArguments, Type, TypeParamBound,
 };
 
+/// Generate a [`DIPortal`] or [`AsyncDIPortal`] implementation. (derive macro)
+///
+/// * `provide`: generate [`DIProvider`] implementation for a specified trait.
+///   ```ignore
+///   #[derive(DIPortal)]
+///   #[provide(HogeI)] // HogeIProvider will be generated.
+///   struct Hoge {
+///     foo: DI<dyn FooI>  // needs FooIProvider in the current scope.
+///   }
+///   ```
+///
+/// * `inject`: specify DI settings for a field.
+///   ```ignore
+///   #[derive(DIPortal)]
+///   struct Hoge {
+///     #[inject(Foo)]  // specify concrete type
+///     foo: DI<dyn FooI>,
+///     #[inject(AsyncFoo, async)]  // specify concrete type that needs async creation,
+///                                 // and consequently AsyncDIPortal for Hoge will be generated.
+///     foo2: DI<dyn FooI>,
+///     #[inject(async)]  // Bar nedds async creation,
+///                       // and consequently AsyncDIPortal for Hoge will be generated.
+///     bar: DI<Bar>,
+///   }
+///   ```
+///
 #[proc_macro_derive(DIPortal, attributes(provide, inject))]
 pub fn derive_di_portal(input: TokenStream) -> TokenStream {
     let DeriveInput {
@@ -55,9 +83,24 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
     }
 }
 
+/// Generate a [`DIProvider`] or [`AsyncDIProvider`] implementation. (attribute macro)
+///
+/// This attribute must be on [`DIPortal`] or [`AsyncDIPortal`] impl block.
+///
+/// ```ignore
+/// trait HogeI {}
+///
+/// struct Hoge {}
+///
+/// // When you needs manual creation logic, define DIPortal implementation.
+/// #[portaldi::provider(HogeI)] // HogeIProvider will be generated.
+/// impl DIPortal for Hoge {
+///   ...
+/// }
+///
+/// ```
 #[proc_macro_attribute]
 pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
-    // TODO check impl target is DIPortal or AsyncDIPortal
     let item_impl = parse_macro_input!(item as ItemImpl);
     let attr_args = parse_macro_input!(attr as AttributeArgs);
 
@@ -73,7 +116,7 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
         panic!("[provider] must be on DIPortal or AsyncDIPortal")
     }
 
-    dbg!(&item_impl.self_ty);
+    // dbg!(&item_impl.self_ty);
     let ident = match *item_impl.self_ty {
         Type::Path(ref p) => p.path.segments.first().map(|s| &s.ident),
         _ => None,
@@ -176,6 +219,7 @@ fn build_provider(
     } else {
         quote! {
             pub struct #provider_type;
+
             impl portaldi::DIProvider for #provider_type {
                 type Output = dyn #provide_target;
                 fn di_on(container: &portaldi::DIContainer) -> portaldi::DI<dyn #provide_target> {
