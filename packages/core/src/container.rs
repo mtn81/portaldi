@@ -1,17 +1,21 @@
 use crate::{traits::DITarget, types::DI};
 use std::{any::Any, collections::HashMap, future::Future, sync::Mutex};
 
+/// DI container holds component refs.
+/// Components are held by its type name (FQTN).
 pub struct DIContainer {
     components: Mutex<HashMap<String, DI<dyn Any + Send + Sync>>>,
 }
 
 impl DIContainer {
+    /// Create new instance.
     pub fn new() -> DIContainer {
         DIContainer {
             components: Mutex::new(HashMap::new()),
         }
     }
 
+    /// Get a component by type.
     pub fn get<T: DITarget>(&self) -> Option<DI<T>> {
         self.components
             .lock()
@@ -20,6 +24,8 @@ impl DIContainer {
             .map(|c| c.clone().downcast::<T>().unwrap())
     }
 
+    /// Get a component by type with a initialization.
+    /// If a target component does not exists, create and put into the container.
     pub fn get_or_init<T, F>(&self, init: F) -> DI<T>
     where
         T: DITarget,
@@ -34,6 +40,8 @@ impl DIContainer {
         }
     }
 
+    /// Get a component by type with a async initialization.
+    /// If a target component does not exists, create and put into the container.
     pub async fn get_or_init_async<T, F, Fut>(&self, init: F) -> DI<T>
     where
         T: DITarget,
@@ -50,6 +58,7 @@ impl DIContainer {
         }
     }
 
+    /// Put a component into the container.
     pub fn put<T: DITarget>(&self, c: &DI<T>) {
         self.components
             .lock()

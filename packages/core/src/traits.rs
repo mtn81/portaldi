@@ -4,11 +4,15 @@ use crate::container::DIContainer;
 use crate::globals::INSTANCE;
 use crate::types::DI;
 
+/// Represent DI target type.
+/// It requires thread safety.
 pub trait DITarget: Send + Sync + 'static {}
 
 impl<T: Send + Sync + 'static> DITarget for T {}
 
+/// Add `di` methods for DI target types.
 pub trait DIPortal {
+    /// DI on a container.
     fn di_on(container: &DIContainer) -> DI<Self>
     where
         Self: Sized + DITarget,
@@ -16,6 +20,7 @@ pub trait DIPortal {
         container.get_or_init(|| Self::create_for_di(container))
     }
 
+    /// DI on the global container.
     fn di() -> DI<Self>
     where
         Self: Sized + DITarget,
@@ -23,11 +28,14 @@ pub trait DIPortal {
         Self::di_on(&INSTANCE)
     }
 
+    /// Create new instance for DI.
     fn create_for_di(container: &DIContainer) -> Self;
 }
 
+/// Add `di` methods for DI target types that needs async creation.
 #[async_trait]
 pub trait AsyncDIPortal {
+    /// DI on a container.
     async fn di_on(container: &DIContainer) -> DI<Self>
     where
         Self: Sized + DITarget,
@@ -37,6 +45,7 @@ pub trait AsyncDIPortal {
             .await
     }
 
+    /// DI on the global container.
     async fn di() -> DI<Self>
     where
         Self: Sized + DITarget,
@@ -44,25 +53,34 @@ pub trait AsyncDIPortal {
         Self::di_on(&INSTANCE).await
     }
 
+    /// Create new instance for DI.
     async fn create_for_di(container: &DIContainer) -> Self;
 }
 
+/// Provides component instance for trait DI types.
 pub trait DIProvider {
+    /// Target trait type.
     type Output: ?Sized;
 
+    /// DI on a container.
     fn di_on(container: &DIContainer) -> DI<Self::Output>;
 
+    /// DI on the global container.
     fn di() -> DI<Self::Output> {
         Self::di_on(&INSTANCE)
     }
 }
 
+/// Provides component instance for trait DI types that needs async creation.
 #[async_trait]
 pub trait AsyncDIProvider {
+    /// Target trait type.
     type Output: ?Sized;
 
+    /// DI on a container.
     async fn di_on(container: &DIContainer) -> DI<Self::Output>;
 
+    /// DI on the global container.
     async fn di() -> DI<Self::Output> {
         Self::di_on(&INSTANCE).await
     }
