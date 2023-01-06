@@ -25,7 +25,7 @@ struct Hoge {
 
 mod foo {
     use super::*;
-    pub trait Foo: Sync + Send {}
+    pub trait Foo: DITarget {}
 
     #[derive(DIPortal, PartialEq)]
     #[provide(Foo)]
@@ -37,7 +37,7 @@ mod foo {
 mod bar {
     use super::*;
 
-    pub trait Bar: Sync + Send {}
+    pub trait Bar: DITarget {}
 
     #[derive(DIPortal)]
     struct BarImpl {}
