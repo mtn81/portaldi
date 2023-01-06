@@ -1,3 +1,5 @@
+//! Type definitions.
+
 use std::sync::Arc;
 
 /// Represents depencency (component) type.

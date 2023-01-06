@@ -1,9 +1,11 @@
+//! DI container functionality.
+
 use crate::{traits::DITarget, types::DI};
 use std::{any::Any, collections::HashMap, future::Future, sync::Mutex};
 
 /// DI container holds component refs.
-/// Components are held by its type name (FQTN).
 pub struct DIContainer {
+    /// Hold components by its type name (FQTN).
     components: Mutex<HashMap<String, DI<dyn Any + Send + Sync>>>,
 }
 

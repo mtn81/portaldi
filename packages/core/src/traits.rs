@@ -1,3 +1,5 @@
+//! Define traits that expose DI apis to user.
+
 use async_trait::async_trait;
 
 use crate::container::DIContainer;

@@ -1,3 +1,5 @@
+//! Global variables.
+
 use crate::container::DIContainer;
 use once_cell::sync::Lazy;
 
