@@ -82,7 +82,7 @@ mod repo {
     }
 
     #[portaldi::provider(HogeRepository)]
-    impl<'a> DIPortal for InMemoryHogeRepository {
+    impl DIPortal for InMemoryHogeRepository {
         fn create_for_di(_container: &DIContainer) -> Self {
             InMemoryHogeRepository::default()
         }
