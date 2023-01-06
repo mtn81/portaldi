@@ -253,13 +253,8 @@ fn build_portal(
     field_di_quotes: Vec<&proc_macro2::TokenStream>,
     is_async: bool,
 ) -> proc_macro2::TokenStream {
-    let di_target_quote = quote! {
-        impl portaldi::DITarget for #ident {}
-    };
     if is_async {
         quote! {
-            // #di_target_quote
-
             #[async_trait::async_trait]
             impl portaldi::AsyncDIPortal for #ident {
                 async fn create_for_di(container: &portaldi::DIContainer) -> Self {
@@ -269,8 +264,6 @@ fn build_portal(
         }
     } else {
         quote! {
-            // #di_target_quote
-
             impl portaldi::DIPortal for #ident {
                 fn create_for_di(container: &portaldi::DIContainer) -> Self {
                     #ident { #(#field_di_quotes)* }
