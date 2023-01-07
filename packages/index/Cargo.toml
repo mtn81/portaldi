@@ -10,8 +10,8 @@ readme = "./README.md"
 keywords = ["di", "ioc", "dependency", "inversion", "dependency-injection"]
 
 [dependencies]
-portaldi-macros = { path = "../macros" }
-portaldi-core = { path = "../core" }
+portaldi-macros = { path = "../macros", version = "0.1.0" }
+portaldi-core = { path = "../core", version = "0.1.0" }
 
 [dev-dependencies]
 async-trait = "0.1"
