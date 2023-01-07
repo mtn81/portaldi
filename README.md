@@ -83,7 +83,7 @@ fn main() {
 
 ### Guides
 
-For detailed guides, see [docs page](https://docs.rs/portaldi/0.1.0/portaldi/docs/index.html)
+For detailed guides, see [docs page](https://docs.rs/portaldi/latest/portaldi/docs/index.html)
 
 #### License
 
