@@ -1,3 +1,5 @@
+![crates.io](https://img.shields.io/crates/v/portaldi.svg)
+
 # portaldi
 
 portaldi is a ergonomic, lightweight and compile-time dependency injection (DI) library for Rust.
