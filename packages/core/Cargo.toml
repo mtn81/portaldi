@@ -1,13 +1,11 @@
 [package]
 name = "portaldi-core"
-version = "0.1.0"
-edition = "2021"
-authors = ["mtn81 <nantsuka2011@gmail.com>"]
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
 description = "Core functionalities for portaldi."
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/mtn81/portaldi"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 once_cell = "1.16"
