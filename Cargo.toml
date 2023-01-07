@@ -2,8 +2,12 @@
 name = "portaldi"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["mtn81 <nantsuka2011@gmail.com>"]
+description = "An ergonomic lightweight compile time depencency injection libray."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/mtn81/portaldi"
+readme = "./README.md"
+keywords = ["di", "ioc", "dependency", "inversion", "dependency-injection"]
 
 [dependencies]
 portaldi-macros = { path = "packages/macros" }
@@ -12,7 +16,6 @@ portaldi-core = { path = "packages/core" }
 [dev-dependencies]
 async-trait = "0.1"
 tokio = { version = "1", features = ["full"] }
-
 
 [workspace]
 members = [
