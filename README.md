@@ -15,10 +15,11 @@ portaldi is a ergonomic, lightweight and compile-time dependency injection (DI) 
   </a>
   <!-- CI -->
   <a href="https://github.com/mtn81/portaldi/actions">
-    <img src="https://github.com/mtn81/portaldi/actions/workflows/main.yml/badge.svg"
+    <img src="https://github.com/mtn81/portaldi/actions/workflows/ci-for-main/badge.svg"
       alt="CI status" />
   </a>
 </div>
+	
 
 ### Features
 * Ergonomic apis for DI.
