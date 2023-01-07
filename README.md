@@ -81,6 +81,10 @@ fn main() {
 
 ```
 
+### Guides
+
+For detailed guides, see [docs page](https://docs.rs/portaldi/0.1.0/portaldi/docs/index.html)
+
 #### License
 
 Licensed under either of [Apache License, Version
