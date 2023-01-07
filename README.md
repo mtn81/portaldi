@@ -1,3 +1,5 @@
+# portaldi
+
  <div align="center">
   <!-- Crates version -->
   <a href="https://crates.io/crates/portaldi">
@@ -15,8 +17,6 @@
       alt="CI status" />
   </a>
 </div>
-
-# portaldi
 
 portaldi is a ergonomic, lightweight and compile-time dependency injection (DI) library for Rust.
 
