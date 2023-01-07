@@ -2,6 +2,25 @@
 
 portaldi is a ergonomic, lightweight and compile-time dependency injection (DI) library for Rust.
 
+<div align="left">
+  <!-- Crates version -->
+  <a href="https://crates.io/crates/portaldi">
+    <img src="https://img.shields.io/crates/v/portaldi.svg?style=flat-square"
+    alt="Crates.io version" />
+  </a>
+  <!-- docs -->
+  <a href="https://docs.rs/portaldi">
+    <img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square"
+      alt="docs.rs docs" />
+  </a>
+  <!-- CI -->
+  <a href="https://github.com/mtn81/portaldi/actions">
+    <img src="https://github.com/mtn81/portaldi/actions/workflows/ci-for-main/badge.svg"
+      alt="CI status" />
+  </a>
+</div>
+	
+
 ### Features
 * Ergonomic apis for DI.
 
