@@ -1,12 +1,12 @@
-//! **portaldi** is a compile time ergonomic dependency injection library.
+//! **portaldi** is an ergonomic, lightweight and compile-time dependency injection library.
 //!
-//! # features
+//! # Features
 //!
-//! * natively async support
+//! * Natively async support
 //!   * components and traits must be `thread-safe` (`Sync + Send`).
 //!   * support for asynchronous component creation.
 //!
-//! * ergonomic apis
+//! * Ergonomic apis
 //!   * in most cases, you can use target types directly instead of using containers.  
 //!   ```ignore
 //!   // for a concrete type.
