@@ -31,6 +31,8 @@ use syn::{
 ///     #[inject(async)]  // Bar nedds async creation,
 ///                       // and consequently AsyncDIPortal for Hoge will be generated.
 ///     bar: DI<Bar>,
+///     #[inject(BazProvider)] // specify DI provider for a another crate concrete type.
+///     baz: DI<Baz>,
 ///   }
 ///   ```
 ///
@@ -279,9 +281,10 @@ fn build_field_di(
     is_async: bool,
 ) -> proc_macro2::TokenStream {
     let fname = f.ident.as_ref().unwrap();
+    let di_type =
+        get_di_type(&f.ty).expect(format!("{} is not DI type", fname.to_string()).as_str());
     inject_path.map_or_else(
-        || match get_di_type(&f.ty).expect(format!("{} is not DI type", fname.to_string()).as_str())
-        {
+        || match di_type {
             DIType::Trait {
                 type_ident: di_type,
             } => {
@@ -308,14 +311,28 @@ fn build_field_di(
                 }
             }
         },
-        |path| {
-            if is_async {
-                quote! {
-                    #fname: #path::di_on(container).await,
+        |path| match di_type {
+            DIType::Trait { type_ident: _ } => {
+                if is_async {
+                    quote! {
+                        #fname: #path::di_on(container).await,
+                    }
+                } else {
+                    quote! {
+                        #fname: #path::di_on(container),
+                    }
                 }
-            } else {
-                quote! {
-                    #fname: #path::di_on(container),
+            }
+            DIType::Concrete { path: _ } => {
+                let di_provider_type = path.get_ident().unwrap();
+                if is_async {
+                    quote! {
+                        #fname: #di_provider_type::di_on(container).await,
+                    }
+                } else {
+                    quote! {
+                        #fname: #di_provider_type::di_on(container),
+                    }
                 }
             }
         },
