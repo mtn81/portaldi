@@ -4,8 +4,11 @@ use proc_macro::TokenStream;
 use quote::quote;
 use regex::Regex;
 use syn::{
-    parse_macro_input, Attribute, AttributeArgs, Data, DeriveInput, GenericArgument, Ident,
-    ImplItem, ItemImpl, Meta, NestedMeta, Path, PathArguments, Type, TypeParamBound,
+    parse::{Parse, ParseStream},
+    parse_macro_input,
+    punctuated::Punctuated,
+    Attribute, Data, DeriveInput, GenericArgument, Ident, ImplItem, ItemImpl, Meta, Path,
+    PathArguments, Token, Type, TypeParamBound,
 };
 
 /// Generate a [`DIPortal`] or [`AsyncDIPortal`] implementation. (derive macro)
@@ -104,7 +107,7 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item_impl = parse_macro_input!(item as ItemImpl);
-    let attr_args = parse_macro_input!(attr as AttributeArgs);
+    let args = parse_macro_input!(attr as ProviderArgs);
 
     // dbg!(&item_impl.trait_);
     let is_portal_impl = match &item_impl.trait_ {
@@ -125,16 +128,13 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
     }
     .expect("impl type name not found.");
 
-    let provider_target = attr_args.iter().find_map(|arg| match arg {
-        NestedMeta::Meta(Meta::Path(p)) => p.get_ident(),
-        _ => None,
-    });
+    let provider_target = args.ident;
 
     let di_method = item_impl
         .items
         .iter()
         .find_map(|item| match item {
-            ImplItem::Method(m) if m.sig.ident == "create_for_di" => Some(m),
+            ImplItem::Fn(m) if m.sig.ident == "create_for_di" => Some(m),
             _ => None,
         })
         .expect("'di' method must be defined.");
@@ -161,7 +161,7 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 fn attr_of<'a>(attrs: &'a Vec<Attribute>, name: &str) -> Option<&'a Attribute> {
     attrs.iter().find(|&a| {
-        a.path
+        a.path()
             .get_ident()
             .filter(|i| i.to_string() == name)
             .is_some()
@@ -344,20 +344,47 @@ struct InjectAttr {
     is_async: bool,
 }
 
-fn parse_inject_attr(attrs: &Vec<Attribute>) -> Option<InjectAttr> {
-    attr_of(attrs, "inject").and_then(|attr| match &attr.parse_meta() {
-        Ok(Meta::List(x)) => {
-            let is_async = x.nested.iter().any(|arg| match arg {
-                NestedMeta::Meta(Meta::Path(p)) => p.is_ident("async"),
-                _ => false,
-            });
+impl Parse for InjectAttr {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let (is_async, path) = if input.peek(Token![async]) {
+            input.parse::<Token![async]>()?;
+            (true, None)
+        } else {
+            (false, Some(input.parse()?))
+        };
+        Ok(InjectAttr { is_async, path })
+    }
+}
 
-            let path = x.nested.iter().find_map(|arg| match arg {
-                NestedMeta::Meta(Meta::Path(p)) if !p.is_ident("async") => Some(p.clone()),
+fn parse_inject_attr(attrs: &Vec<Attribute>) -> Option<InjectAttr> {
+    attr_of(attrs, "inject").and_then(|attr| match &attr.meta {
+        Meta::List(metas) => {
+            let args = metas
+                .parse_args_with(Punctuated::<InjectAttr, Token![,]>::parse_terminated)
+                .unwrap();
+
+            let is_async = args.iter().any(|arg| arg.is_async);
+
+            let path = args.iter().find_map(|arg| match arg.path.as_ref() {
+                Some(p) => Some(p.clone()),
                 _ => None,
             });
+
             Some(InjectAttr { path, is_async })
         }
         _ => None,
     })
+}
+
+#[derive(Debug)]
+struct ProviderArgs {
+    ident: Option<syn::Ident>,
+}
+
+impl Parse for ProviderArgs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(ProviderArgs {
+            ident: input.parse()?,
+        })
+    }
 }
