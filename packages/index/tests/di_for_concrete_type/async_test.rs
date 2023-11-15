@@ -28,13 +28,16 @@ impl AsyncDIPortal for ABar {
 }
 
 #[derive(PartialEq)]
-struct ABaz {}
+pub struct ABaz {}
 
-struct ABazProvider {}
-#[async_trait]
-impl AsyncDIProvider for ABazProvider {
-    type Output = ABaz;
-    async fn di_on(container: &DIContainer) -> DI<Self::Output> {
-        container.get_or_init(|| ABaz {})
-    }
-}
+async_di_provider!(ABaz, |_c| async { ABaz {} });
+// struct ABazProvider {}
+// #[async_trait]
+// impl AsyncDIProvider for ABazProvider {
+//     type Output = ABaz;
+//     async fn di_on(container: &DIContainer) -> DI<Self::Output> {
+//         container
+//             .get_or_init_async(|| async { create_abaz(container).await })
+//             .await
+//     }
+// }
