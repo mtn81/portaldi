@@ -11,6 +11,8 @@ struct Hoge {
     bar: DI<Bar>,
     #[inject(BazProvider)]
     baz: DI<Baz>,
+    #[inject(with_provider)]
+    yah: DI<Yah>,
 }
 
 impl PartialEq for Hoge {
@@ -19,6 +21,7 @@ impl PartialEq for Hoge {
             && ptr_eq(self.foo.as_ref(), other.foo.as_ref())
             && ptr_eq(self.bar.as_ref(), other.bar.as_ref())
             && ptr_eq(self.baz.as_ref(), other.baz.as_ref())
+            && ptr_eq(self.yah.as_ref(), other.yah.as_ref())
             && ptr_eq(self.foo.bar.as_ref(), other.foo.bar.as_ref())
             && ptr_eq(self.foo.bar.as_ref(), self.bar.as_ref())
             && ptr_eq(other.foo.bar.as_ref(), other.bar.as_ref())
@@ -41,13 +44,16 @@ impl DIPortal for Bar {
 pub struct Baz {}
 
 // implements provider manually
-di_provider!(Baz, |_c| { Baz {} });
+struct BazProvider {}
+impl DIProvider for BazProvider {
+    type Output = Baz;
 
-// struct BazProvider {}
-// impl DIProvider for BazProvider {
-//     type Output = Baz;
+    fn di_on(container: &DIContainer) -> DI<Self::Output> {
+        container.get_or_init(|| Baz {})
+    }
+}
 
-//     fn di_on(container: &DIContainer) -> DI<Self::Output> {
-//         container.get_or_init(|| Baz {})
-//     }
-// }
+pub struct Yah {}
+
+// implements provider manually
+di_provider!(Yah, |_c| { Yah {} });
