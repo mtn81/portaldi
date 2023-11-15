@@ -12,6 +12,8 @@ struct AHoge {
     bar: DI<ABar>,
     #[inject(ABazProvider, async)]
     baz: DI<ABaz>,
+    #[inject(with_provider, async)]
+    yah: DI<AYah>,
 }
 
 #[derive(DIPortal, PartialEq)]
@@ -29,15 +31,15 @@ impl AsyncDIPortal for ABar {
 
 #[derive(PartialEq)]
 pub struct ABaz {}
+struct ABazProvider {}
+#[async_trait]
+impl AsyncDIProvider for ABazProvider {
+    type Output = ABaz;
+    async fn di_on(container: &DIContainer) -> DI<Self::Output> {
+        container.get_or_init_async(|| async { ABaz {} }).await
+    }
+}
 
-async_di_provider!(ABaz, |_c| async { ABaz {} });
-// struct ABazProvider {}
-// #[async_trait]
-// impl AsyncDIProvider for ABazProvider {
-//     type Output = ABaz;
-//     async fn di_on(container: &DIContainer) -> DI<Self::Output> {
-//         container
-//             .get_or_init_async(|| async { create_abaz(container).await })
-//             .await
-//     }
-// }
+#[derive(PartialEq)]
+pub struct AYah {}
+async_di_provider!(AYah, |_c| async { AYah {} });

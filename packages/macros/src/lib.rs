@@ -34,8 +34,10 @@ use syn::{
 ///     #[inject(async)]  // Bar nedds async creation,
 ///                       // and consequently AsyncDIPortal for Hoge will be generated.
 ///     bar: DI<Bar>,
-///     #[inject(BazProvider)] // specify DI provider for a another crate concrete type.
+///     #[inject(MyBazProvider)] // specify DI provider for a another crate concrete type.
 ///     baz: DI<Baz>,
+///     #[inject(with_provider)] // specify DI provider for a another crate concrete type (short hand notation).
+///     baz2: DI<Baz>,
 ///   }
 ///   ```
 ///
@@ -53,8 +55,12 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
                 .map(|f| {
                     let inject_attr = parse_inject_attr(&f.attrs);
                     let is_async = inject_attr.as_ref().map(|a| a.is_async).unwrap_or(false);
+                    let with_provider = inject_attr
+                        .as_ref()
+                        .map(|a| a.with_provider)
+                        .unwrap_or(false);
                     let inject_path = inject_attr.as_ref().and_then(|a| a.path.as_ref());
-                    let field_di = build_field_di(&f, inject_path, is_async);
+                    let field_di = build_field_di(&f, inject_path, is_async, with_provider);
                     (field_di, is_async)
                 })
                 .collect();
@@ -364,6 +370,7 @@ fn build_field_di(
     f: &syn::Field,
     inject_path: Option<&Path>,
     is_async: bool,
+    with_provider: bool,
 ) -> proc_macro2::TokenStream {
     let fname = f.ident.as_ref().unwrap();
     let di_type =
@@ -384,7 +391,16 @@ fn build_field_di(
                     }
                 }
             }
-            DIType::Concrete { path: di_type } => {
+            DIType::Concrete {
+                path: di_concrete_type,
+            } => {
+                let di_type = if with_provider {
+                    let concrete_type_ident = &di_concrete_type.segments.last().unwrap().ident;
+                    let di_provider_type = format_ident!("{}Provider", concrete_type_ident);
+                    quote! { #di_provider_type }
+                } else {
+                    quote! { #di_concrete_type }
+                };
                 if is_async {
                     quote! {
                         #fname: #di_type::di_on(container).await,
@@ -424,38 +440,56 @@ fn build_field_di(
     )
 }
 
+#[derive(PartialEq)]
+enum InjectAttrPart {
+    Path(Path),
+    Async,
+    WithProvider,
+}
+
+impl Parse for InjectAttrPart {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(if input.peek(Token![async]) {
+            input.parse::<Token![async]>()?;
+            InjectAttrPart::Async
+        } else if input.peek(kw::with_provider) {
+            input.parse::<kw::with_provider>()?;
+            InjectAttrPart::WithProvider
+        } else {
+            InjectAttrPart::Path(input.parse()?)
+        })
+    }
+}
+
+mod kw {
+    syn::custom_keyword!(with_provider);
+}
+
 struct InjectAttr {
     path: Option<Path>,
     is_async: bool,
-}
-
-impl Parse for InjectAttr {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let (is_async, path) = if input.peek(Token![async]) {
-            input.parse::<Token![async]>()?;
-            (true, None)
-        } else {
-            (false, Some(input.parse()?))
-        };
-        Ok(InjectAttr { is_async, path })
-    }
+    with_provider: bool,
 }
 
 fn parse_inject_attr(attrs: &Vec<Attribute>) -> Option<InjectAttr> {
     attr_of(attrs, "inject").and_then(|attr| match &attr.meta {
         Meta::List(metas) => {
             let args = metas
-                .parse_args_with(Punctuated::<InjectAttr, Token![,]>::parse_terminated)
+                .parse_args_with(Punctuated::<InjectAttrPart, Token![,]>::parse_terminated)
                 .unwrap();
 
-            let is_async = args.iter().any(|arg| arg.is_async);
-
-            let path = args.iter().find_map(|arg| match arg.path.as_ref() {
-                Some(p) => Some(p.clone()),
+            let is_async = args.iter().any(|arg| arg == &InjectAttrPart::Async);
+            let with_provider = args.iter().any(|arg| arg == &InjectAttrPart::WithProvider);
+            let path = args.iter().find_map(|arg| match arg {
+                InjectAttrPart::Path(p) => Some(p.clone()),
                 _ => None,
             });
 
-            Some(InjectAttr { path, is_async })
+            Some(InjectAttr {
+                path,
+                is_async,
+                with_provider,
+            })
         }
         _ => None,
     })
