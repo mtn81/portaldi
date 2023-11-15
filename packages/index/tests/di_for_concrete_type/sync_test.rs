@@ -38,14 +38,16 @@ impl DIPortal for Bar {
     }
 }
 
-struct Baz {}
+pub struct Baz {}
 
-struct BazProvider {}
 // implements provider manually
-impl DIProvider for BazProvider {
-    type Output = Baz;
+di_provider!(Baz, |_c| { Baz {} });
 
-    fn di_on(container: &DIContainer) -> DI<Self::Output> {
-        container.get_or_init(|| Baz {})
-    }
-}
+// struct BazProvider {}
+// impl DIProvider for BazProvider {
+//     type Output = Baz;
+
+//     fn di_on(container: &DIContainer) -> DI<Self::Output> {
+//         container.get_or_init(|| Baz {})
+//     }
+// }

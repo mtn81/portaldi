@@ -1,7 +1,7 @@
 //! proc-macros for generate trait implementations.
 
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{format_ident, quote};
 use regex::Regex;
 use syn::{
     parse::{Parse, ParseStream},
@@ -157,6 +157,91 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
         #provider_quote
     }
     .into()
+}
+
+/// Generate a [`DIProvider`] implementation.
+///
+/// ```ignore
+/// pub struct Hoge {}
+///
+/// // This macro is useful if you want to define the [`DIProvider`] manually.
+/// di_provider!(Hoge, |c| {
+///     // some creation logic
+/// });
+///
+/// ```
+#[proc_macro]
+pub fn di_provider(input: TokenStream) -> TokenStream {
+    let DefDiProviderInput {
+        target_ident,
+        create_fn,
+        ..
+    } = parse_macro_input!(input as DefDiProviderInput);
+    let provider_ident = format_ident!("{}Provider", target_ident);
+
+    let result = quote! {
+        pub struct #provider_ident;
+        impl DIProvider for #provider_ident {
+            type Output = #target_ident;
+
+            fn di_on(c: &DIContainer) -> DI<Self::Output> {
+                c.get_or_init(|| (#create_fn)(c))
+            }
+        }
+    };
+
+    result.into()
+}
+
+/// Generate a [`AsyncDIProvider`] implementation.
+///
+/// ```ignore
+/// pub struct Hoge {}
+///
+/// // This macro is useful if you want to define a [`AsyncDIProvider`] manually.
+/// di_async_provider!(Hoge, |c| async {
+///     // some asynchronous creation logic
+/// });
+///
+/// ```
+#[proc_macro]
+pub fn async_di_provider(input: TokenStream) -> TokenStream {
+    let DefDiProviderInput {
+        target_ident,
+        create_fn,
+        ..
+    } = parse_macro_input!(input as DefDiProviderInput);
+    let provider_ident = format_ident!("{}Provider", target_ident);
+
+    let result = quote! {
+        pub struct #provider_ident;
+
+        #[async_trait::async_trait]
+        impl AsyncDIProvider for #provider_ident {
+            type Output = #target_ident;
+
+            async fn di_on(c: &DIContainer) -> DI<Self::Output> {
+                c.get_or_init_async(|| (#create_fn)(c)).await
+            }
+        }
+    };
+
+    result.into()
+}
+
+struct DefDiProviderInput {
+    target_ident: syn::Ident,
+    _comma: Token![,],
+    create_fn: syn::ExprClosure,
+}
+impl Parse for DefDiProviderInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(DefDiProviderInput {
+            target_ident: input.parse()?,
+            _comma: input.parse()?,
+            create_fn: input.parse()?,
+        })
+    }
 }
 
 fn attr_of<'a>(attrs: &'a Vec<Attribute>, name: &str) -> Option<&'a Attribute> {
