@@ -27,6 +27,21 @@ impl DIContainer {
             .map(|c| c.clone().downcast::<T>().unwrap())
     }
 
+    /// Put a component into the container.
+    pub fn put_if_absent<T: DITarget>(&self, c: &DI<T>) -> DI<T> {
+        let mut components = self.components.lock().unwrap();
+        let key = std::any::type_name::<T>();
+        let value = components
+            .get(key)
+            .map(|c| c.clone().downcast::<T>().unwrap());
+        if let Some(c) = value {
+            c
+        } else {
+            components.insert(key.into(), c.clone());
+            c.clone()
+        }
+    }
+
     /// Get a component by type with a initialization.
     /// If a target component does not exists, create and put into the container.
     pub fn get_or_init<T, F>(&self, init: F) -> DI<T>
@@ -38,8 +53,7 @@ impl DIContainer {
             c
         } else {
             let c = DI::new(init());
-            self.put(&c);
-            c
+            self.put_if_absent(&c)
         }
     }
 
@@ -56,16 +70,7 @@ impl DIContainer {
         } else {
             let v = init().await;
             let c = DI::new(v);
-            self.put(&c);
-            c
+            self.put_if_absent(&c)
         }
-    }
-
-    /// Put a component into the container.
-    pub fn put<T: DITarget>(&self, c: &DI<T>) {
-        self.components
-            .lock()
-            .unwrap()
-            .insert(std::any::type_name::<T>().into(), c.clone());
     }
 }
