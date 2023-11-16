@@ -1,0 +1,12 @@
+[package]
+name = "portaldi-always-async-test"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+portaldi = { path = "../index" }
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

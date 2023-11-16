@@ -156,6 +156,7 @@ mod tests {
         async fn test_same_instance_for_AsyncDIPortal() {
             let hoge1 = AsyncHoge::di().await.as_ref() as *const _;
             let hoge2 = AsyncHoge::di().await.as_ref() as *const _;
+            println!("check !!! {:?} {:?}", hoge1, hoge2);
             assert!(std::ptr::eq(hoge1, hoge2));
         }
 
@@ -164,6 +165,7 @@ mod tests {
         async fn test_same_instance_for_AsyncDIProvider() {
             let foo1 = AsyncFooIProvider::di().await.as_ref() as *const _;
             let foo2 = AsyncFooIProvider::di().await.as_ref() as *const _;
+            println!("check !!! {:?} {:?}", foo1, foo2);
             assert!(std::ptr::eq(foo1, foo2));
         }
     }
