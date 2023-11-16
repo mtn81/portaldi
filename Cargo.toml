@@ -1,5 +1,6 @@
 [workspace]
 members = ["packages/index", "packages/core", "packages/macros"]
+exclude = ["packages/always_async_test"]
 
 [workspace.package]
 version = "0.1.5"
