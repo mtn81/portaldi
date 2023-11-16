@@ -4,12 +4,12 @@ exclude = ["packages/always_async_test"]
 resolver = "2"
 
 [workspace.package]
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 authors = ["mtn81 <nantsuka2011@gmail.com>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/mtn81/portaldi"
 
 [workspace.dependencies]
-portaldi-core = { path = "packages/core", version = "0.2.0" }
-portaldi-macros = { path = "packages/macros", version = "0.2.0" }
+portaldi-core = { path = "packages/core", version = "0.2.3" }
+portaldi-macros = { path = "packages/macros", version = "0.2.3" }
