@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-portaldi = { path = "../index", version = "0.1.4" }
+portaldi = { path = "../index" }
 async-trait = "0.1"
 
 [dev-dependencies]
