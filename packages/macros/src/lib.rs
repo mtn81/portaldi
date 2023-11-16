@@ -43,6 +43,11 @@ use syn::{
 ///
 #[proc_macro_derive(DIPortal, attributes(provide, inject))]
 pub fn derive_di_portal(input: TokenStream) -> TokenStream {
+    let is_always_async = std::env::var("PORTALDI_ALWAYS_ASYNC")
+        .ok()
+        .and_then(|s| s.parse::<bool>().ok())
+        .unwrap_or(false);
+
     let DeriveInput {
         data, ident, attrs, ..
     } = parse_macro_input!(input);
@@ -54,7 +59,8 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
                 .iter()
                 .map(|f| {
                     let inject_attr = parse_inject_attr(&f.attrs);
-                    let is_async = inject_attr.as_ref().map(|a| a.is_async).unwrap_or(false);
+                    let is_async = is_always_async
+                        || inject_attr.as_ref().map(|a| a.is_async).unwrap_or(false);
                     let with_provider = inject_attr
                         .as_ref()
                         .map(|a| a.with_provider)
@@ -66,7 +72,7 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
                 .collect();
 
             let field_di_quotes = field_dis.iter().map(|f| &f.0).collect::<Vec<_>>();
-            let is_totally_async = field_dis.iter().any(|f| f.1);
+            let is_totally_async = is_always_async || field_dis.iter().any(|f| f.1);
             let di_portal_quote = build_portal(&ident, field_di_quotes, is_totally_async);
 
             let provider_quote = if let Some(provide_attr) = attr_of(&attrs, "provide") {
