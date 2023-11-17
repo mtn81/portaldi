@@ -17,6 +17,12 @@ jobs:
       run: |
         cargo clean
         cargo test --verbose -- --nocapture
-        cd packages/always_async_test/
+
+        cd packages/tests/always_async_test/
+        cargo clean
+        cargo test --verbose -- --nocapture
+
+        cd -
+        cd packages/tests/feature_futures_join_test/
         cargo clean
         cargo test --verbose -- --nocapture
