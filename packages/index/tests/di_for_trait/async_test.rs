@@ -7,6 +7,7 @@ async fn test_di() {
 }
 
 use bar::*;
+use baz::*;
 use foo::*;
 #[derive(DIPortal)]
 struct Hoge {
@@ -18,7 +19,10 @@ struct Hoge {
     foo2: DI<dyn Foo>,
     // async di by implicit Provider
     #[inject(async)]
-    bar1: DI<dyn Bar>,
+    _bar1: DI<dyn Bar>,
+    // di by manual Provider
+    #[inject(async)]
+    _baz: DI<dyn Baz>,
 }
 
 mod foo {
@@ -61,4 +65,15 @@ mod bar {
             BarImpl {}
         }
     }
+}
+
+mod baz {
+    use super::*;
+
+    pub trait Baz: DITarget {}
+
+    struct BazTest {}
+    impl Baz for BazTest {}
+
+    async_di_provider!(dyn Baz, |_c| async { BazTest {} });
 }
