@@ -14,9 +14,9 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/mtn81/portaldi"
 
 [workspace.dependencies.portaldi-core]
-path = "packages/core" #tag:release-version
-version = "0.2.4"
+path = "packages/core"
+version = "0.2.4"      #tag:release-version
 
 [workspace.dependencies.portaldi-macros]
-path = "packages/macros" #tag:release-version
-version = "0.2.4"
+path = "packages/macros"
+version = "0.2.4"        #tag:release-version
