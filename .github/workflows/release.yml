@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  release: 
+    types: [edited]
+    # types: [released]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Update version for release
+      run: |
+        echo '!!!! release !!!!! ${{ github.event.release.tag_name }}'
+
+
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - uses: katyo/publish-crates@v2
+      with:
+        dry-run: true
+        # registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+    - uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: Automated version update on release
