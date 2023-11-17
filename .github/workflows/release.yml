@@ -2,7 +2,7 @@ name: Release
 
 on:
   release: 
-    types: [edited]
+    types: [published]
     # types: [released]
 
 env:
