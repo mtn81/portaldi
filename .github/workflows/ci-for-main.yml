@@ -18,8 +18,14 @@ jobs:
     - name: Run tests
       run: |
         cargo clean
-        cargo test --verbose
-        cd packages/always_async_test/
+        cargo test --verbose -- --nocapture
+
+        cd packages/tests/env_always_async_test/
         cargo clean
-        cargo test --verbose
+        cargo test --verbose -- --nocapture
+
+        cd -
+        cd packages/tests/feature_futures_join_test/
+        cargo clean
+        cargo test --verbose -- --nocapture
 
