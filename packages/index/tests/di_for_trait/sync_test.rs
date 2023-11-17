@@ -8,6 +8,7 @@ fn test_di() {
 }
 
 use bar::*;
+use baz::*;
 use foo::*;
 
 #[derive(DIPortal)]
@@ -21,6 +22,8 @@ struct Hoge {
     // di by explicit type in "inject"
     #[inject(BarImpl2)]
     bar2: DI<dyn Bar>,
+    // di by manual Provider
+    _baz: DI<dyn Baz>,
 }
 
 mod foo {
@@ -46,4 +49,15 @@ mod bar {
     #[derive(DIPortal)]
     pub struct BarImpl2 {}
     impl Bar for BarImpl2 {}
+}
+
+mod baz {
+    use super::*;
+
+    pub trait Baz: DITarget {}
+
+    struct BazTest {}
+    impl Baz for BazTest {}
+
+    di_provider!(dyn Baz, |_c| BazTest {});
 }

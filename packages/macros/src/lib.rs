@@ -182,10 +182,16 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///     // some creation logic
 /// });
 ///
+/// // Also you can define provider for a trait.
+/// di_provider!(dyn HogeI, |c| {
+///     // some creation logic
+/// });
+///
 /// ```
 #[proc_macro]
 pub fn di_provider(input: TokenStream) -> TokenStream {
     let DefDiProviderInput {
+        kw_dyn,
         target_ident,
         create_fn,
         ..
@@ -195,7 +201,7 @@ pub fn di_provider(input: TokenStream) -> TokenStream {
     let result = quote! {
         pub struct #provider_ident;
         impl DIProvider for #provider_ident {
-            type Output = #target_ident;
+            type Output = #kw_dyn #target_ident;
 
             fn di_on(c: &DIContainer) -> DI<Self::Output> {
                 c.get_or_init(|| (#create_fn)(c))
@@ -212,14 +218,20 @@ pub fn di_provider(input: TokenStream) -> TokenStream {
 /// pub struct Hoge {}
 ///
 /// // This macro is useful if you want to define a [`AsyncDIProvider`] manually.
-/// di_async_provider!(Hoge, |c| async {
+/// async_di_provider!(Hoge, |c| async {
 ///     // some asynchronous creation logic
+/// });
+///
+/// // Also you can define provider for a trait.
+/// async_di_provider!(dyn HogeI, |c| {
+///     // some creation logic
 /// });
 ///
 /// ```
 #[proc_macro]
 pub fn async_di_provider(input: TokenStream) -> TokenStream {
     let DefDiProviderInput {
+        kw_dyn,
         target_ident,
         create_fn,
         ..
@@ -231,7 +243,7 @@ pub fn async_di_provider(input: TokenStream) -> TokenStream {
 
         #[async_trait::async_trait]
         impl AsyncDIProvider for #provider_ident {
-            type Output = #target_ident;
+            type Output = #kw_dyn #target_ident;
 
             async fn di_on(c: &DIContainer) -> DI<Self::Output> {
                 c.get_or_init_async(|| (#create_fn)(c)).await
@@ -249,16 +261,27 @@ struct FieldDI {
 }
 
 struct DefDiProviderInput {
+    kw_dyn: Option<Token![dyn]>,
     target_ident: syn::Ident,
     _comma: Token![,],
     create_fn: syn::ExprClosure,
 }
 impl Parse for DefDiProviderInput {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let kw_dyn = if input.peek(Token![dyn]) {
+            Some(input.parse()?)
+        } else {
+            None
+        };
+        let target_ident = input.parse()?;
+        let _comma = input.parse()?;
+        let create_fn = input.parse()?;
+
         Ok(DefDiProviderInput {
-            target_ident: input.parse()?,
-            _comma: input.parse()?,
-            create_fn: input.parse()?,
+            kw_dyn,
+            target_ident,
+            _comma,
+            create_fn,
         })
     }
 }
