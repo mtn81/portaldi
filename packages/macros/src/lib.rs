@@ -66,14 +66,18 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
                         .map(|a| a.with_provider)
                         .unwrap_or(false);
                     let inject_path = inject_attr.as_ref().and_then(|a| a.path.as_ref());
-                    let field_di = build_field_di(&f, inject_path, is_async, with_provider);
-                    (field_di, is_async)
+                    let di_expr = build_field_di(&f, inject_path, with_provider);
+                    let field_ident = f.ident.as_ref().unwrap().clone();
+                    FieldDI {
+                        field_ident,
+                        is_async,
+                        di_expr,
+                    }
                 })
                 .collect();
 
-            let field_di_quotes = field_dis.iter().map(|f| &f.0).collect::<Vec<_>>();
-            let is_totally_async = is_always_async || field_dis.iter().any(|f| f.1);
-            let di_portal_quote = build_portal(&ident, field_di_quotes, is_totally_async);
+            let is_totally_async = is_always_async || field_dis.iter().any(|f| f.is_async);
+            let di_portal_quote = build_portal(&ident, field_dis, is_totally_async);
 
             let provider_quote = if let Some(provide_attr) = attr_of(&attrs, "provide") {
                 let provide_target = provide_attr.parse_args::<syn::Ident>().unwrap();
@@ -82,17 +86,14 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
                 build_provider_by_env(&ident, is_totally_async)
             };
 
-            // let q = quote! {
-            //     #provider_quote
-            //     #di_portal_quote
-            // };
-            // println!("check !!!! {:}", q.to_string());
-
-            quote! {
+            let result = quote! {
                 #provider_quote
                 #di_portal_quote
-            }
-            .into()
+            };
+
+            // println!("check !!!! {:}", result);
+
+            result.into()
         }
         _ => syn::Error::new_spanned(&ident, "Must be struct type")
             .to_compile_error()
@@ -241,6 +242,12 @@ pub fn async_di_provider(input: TokenStream) -> TokenStream {
     result.into()
 }
 
+struct FieldDI {
+    field_ident: syn::Ident,
+    is_async: bool,
+    di_expr: proc_macro2::TokenStream,
+}
+
 struct DefDiProviderInput {
     target_ident: syn::Ident,
     _comma: Token![,],
@@ -349,15 +356,28 @@ fn build_provider_by_env(ident: &Ident, is_async: bool) -> proc_macro2::TokenStr
 
 fn build_portal(
     ident: &Ident,
-    field_di_quotes: Vec<&proc_macro2::TokenStream>,
-    is_async: bool,
+    field_dis: Vec<FieldDI>,
+    is_totally_async: bool,
 ) -> proc_macro2::TokenStream {
-    if is_async {
+    let field_di_quotes = field_dis.iter().map(|f| {
+        let ident = &f.field_ident;
+        let expr = &f.di_expr;
+        if f.is_async {
+            quote! {
+                #ident: #expr.await
+            }
+        } else {
+            quote! {
+                #ident: #expr
+            }
+        }
+    });
+    if is_totally_async {
         quote! {
             #[async_trait::async_trait]
             impl portaldi::AsyncDIPortal for #ident {
                 async fn create_for_di(container: &portaldi::DIContainer) -> Self {
-                    #ident { #(#field_di_quotes)* }
+                    #ident { #(#field_di_quotes),* }
                 }
             }
         }
@@ -365,7 +385,7 @@ fn build_portal(
         quote! {
             impl portaldi::DIPortal for #ident {
                 fn create_for_di(container: &portaldi::DIContainer) -> Self {
-                    #ident { #(#field_di_quotes)* }
+                    #ident { #(#field_di_quotes),* }
                 }
             }
         }
@@ -375,26 +395,18 @@ fn build_portal(
 fn build_field_di(
     f: &syn::Field,
     inject_path: Option<&Path>,
-    is_async: bool,
     with_provider: bool,
 ) -> proc_macro2::TokenStream {
-    let fname = f.ident.as_ref().unwrap();
     let di_type =
-        get_di_type(&f.ty).expect(format!("{} is not DI type", fname.to_string()).as_str());
+        get_di_type(&f.ty).expect(format!("{:?} is not DI type", &f.ident.as_ref()).as_str());
     inject_path.map_or_else(
         || match di_type {
             DIType::Trait {
                 type_ident: di_type,
             } => {
                 let di_provider_type = quote::format_ident!("{}Provider", di_type);
-                if is_async {
-                    quote! {
-                        #fname: #di_provider_type::di_on(container).await,
-                    }
-                } else {
-                    quote! {
-                        #fname: #di_provider_type::di_on(container),
-                    }
+                quote! {
+                    #di_provider_type::di_on(container)
                 }
             }
             DIType::Concrete {
@@ -407,39 +419,21 @@ fn build_field_di(
                 } else {
                     quote! { #di_concrete_type }
                 };
-                if is_async {
-                    quote! {
-                        #fname: #di_type::di_on(container).await,
-                    }
-                } else {
-                    quote! {
-                        #fname: #di_type::di_on(container),
-                    }
+                quote! {
+                    #di_type::di_on(container)
                 }
             }
         },
         |path| match di_type {
             DIType::Trait { type_ident: _ } => {
-                if is_async {
-                    quote! {
-                        #fname: #path::di_on(container).await,
-                    }
-                } else {
-                    quote! {
-                        #fname: #path::di_on(container),
-                    }
+                quote! {
+                    #path::di_on(container)
                 }
             }
             DIType::Concrete { path: _ } => {
                 let di_provider_type = path.get_ident().unwrap();
-                if is_async {
-                    quote! {
-                        #fname: #di_provider_type::di_on(container).await,
-                    }
-                } else {
-                    quote! {
-                        #fname: #di_provider_type::di_on(container),
-                    }
+                quote! {
+                    #di_provider_type::di_on(container)
                 }
             }
         },
