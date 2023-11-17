@@ -18,7 +18,7 @@ jobs:
         cargo clean
         cargo test --verbose -- --nocapture
 
-        cd packages/tests/always_async_test/
+        cd packages/tests/env_always_async_test/
         cargo clean
         cargo test --verbose -- --nocapture
 
