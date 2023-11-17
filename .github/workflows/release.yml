@@ -25,7 +25,7 @@ jobs:
       run: |
         version=$(echo '${{ github.event.release.tag_name }}' | sed -e 's/^v//g')
         echo "Debug: release version is $version"
-        sed -i -e "s/^version = .*#tag:release-version$/version = "$version" #tag:release-version/g" ./Cargo.toml
+        sed -i -e "s/^version = .*#tag:release-version$/version = \"$version\" #tag:release-version/g" ./Cargo.toml
         echo "Debug: Cargo.toml"
         cat ./Cargo.toml
 
