@@ -23,10 +23,11 @@ jobs:
 
     - name: Update version for release
       run: |
-        version=$(echo '${{ github.event.release.tag_name }}' | sed 's/^v//g')
-        echo "!!!! release version is !!!!! $version"
-
-
+        version=$(echo '${{ github.event.release.tag_name }}' | sed -e 's/^v//g')
+        echo "Debug: release version is $version"
+        sed -i -e "s/version = (.*) #tag:release-version/version = $version #tag:release-version/g" ./Cargo.toml
+        echo "Debug: Cargo.toml"
+        cat ./Cargo.toml
 
     - uses: actions-rs/toolchain@v1
       with:
