@@ -1,0 +1,13 @@
+[package]
+name = "feature_futures_join_test"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+portaldi = { path = "../../index", features = ["futures-join"] }
+async-trait = "0.1"
+futures = "0.3.29"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

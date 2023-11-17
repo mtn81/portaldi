@@ -359,25 +359,56 @@ fn build_portal(
     field_dis: Vec<FieldDI>,
     is_totally_async: bool,
 ) -> proc_macro2::TokenStream {
-    let field_di_quotes = field_dis.iter().map(|f| {
-        let ident = &f.field_ident;
-        let expr = &f.di_expr;
-        if f.is_async {
-            quote! {
-                #ident: #expr.await
-            }
-        } else {
-            quote! {
-                #ident: #expr
-            }
-        }
-    });
+    let field_di_quotes = if cfg!(feature = "futures-join") {
+        let (async_field_dis, sync_field_dis): (Vec<_>, Vec<_>) =
+            field_dis.iter().partition(|f| f.is_async);
+
+        let async_di_exprs = async_field_dis.iter().map(|f| &f.di_expr);
+        let async_fields = async_field_dis.iter().map(|f| &f.field_ident);
+        let async_quote = quote! {
+            let (#(#async_fields),*) = futures::join!(#(#async_di_exprs),*);
+        };
+        let mut sync_quotes = sync_field_dis
+            .iter()
+            .map(|f| {
+                let ident = &f.field_ident;
+                let expr = &f.di_expr;
+                quote! {
+                    let #ident = #expr;
+                }
+            })
+            .collect::<Vec<_>>();
+        let mut result: Vec<proc_macro2::TokenStream> = vec![];
+        result.append(&mut sync_quotes);
+        result.push(async_quote);
+        result
+    } else {
+        field_dis
+            .iter()
+            .map(|f| {
+                let ident = &f.field_ident;
+                let expr = &f.di_expr;
+                if f.is_async {
+                    quote! {
+                        let #ident = #expr.await;
+                    }
+                } else {
+                    quote! {
+                        let #ident = #expr;
+                    }
+                }
+            })
+            .collect::<Vec<_>>()
+    };
+
+    let field_idents = field_dis.iter().map(|f| &f.field_ident);
     if is_totally_async {
         quote! {
             #[async_trait::async_trait]
             impl portaldi::AsyncDIPortal for #ident {
                 async fn create_for_di(container: &portaldi::DIContainer) -> Self {
-                    #ident { #(#field_di_quotes),* }
+                    #(#field_di_quotes)*
+                    #ident { #(#field_idents),* }
                 }
             }
         }
@@ -385,7 +416,8 @@ fn build_portal(
         quote! {
             impl portaldi::DIPortal for #ident {
                 fn create_for_di(container: &portaldi::DIContainer) -> Self {
-                    #ident { #(#field_di_quotes),* }
+                    #(#field_di_quotes)*
+                    #ident { #(#field_idents),* }
                 }
             }
         }

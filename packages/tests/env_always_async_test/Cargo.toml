@@ -1,11 +1,11 @@
 [package]
-name = "portaldi-always-async-test"
+name = "env_always_async_test"
 version = "0.0.0"
 edition = "2021"
 publish = false
 
 [dependencies]
-portaldi = { path = "../index" }
+portaldi = { path = "../../index" }
 async-trait = "0.1"
 
 [dev-dependencies]

@@ -24,3 +24,7 @@ portaldi-core.workspace = true
 
 [lib]
 proc-macro = true
+
+[features]
+default = []
+futures-join = []
