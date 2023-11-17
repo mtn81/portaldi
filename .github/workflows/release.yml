@@ -23,8 +23,8 @@ jobs:
 
     - name: Update version for release
       run: |
-        version=$(echo '${{ github.event.release.tag_name }}' | sed 's/^v//')
-        echo "!!!! release !!!!! $version"
+        version=$(echo '${{ github.event.release.tag_name }}' | sed 's/^v//g')
+        echo "!!!! release version is !!!!! $version"
 
 
 
