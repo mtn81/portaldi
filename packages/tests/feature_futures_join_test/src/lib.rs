@@ -7,6 +7,16 @@ pub struct Hoge {
     #[inject(async)]
     bar: DI<Bar>,
 }
+#[derive(DIPortal, Debug)]
+pub struct Hoge2 {
+    #[inject(async)]
+    foo: DI<Foo>,
+    baz: DI<Baz>,
+}
+#[derive(DIPortal, Debug)]
+pub struct Hoge3 {
+    baz: DI<Baz>,
+}
 
 #[derive(Debug)]
 pub struct Foo {}
@@ -26,13 +36,17 @@ impl AsyncDIPortal for Bar {
     }
 }
 
+#[derive(DIPortal, Debug)]
+pub struct Baz {}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[tokio::test]
     async fn test_async() {
-        let hoge = Hoge::di().await;
-        println!("{:?}", hoge)
+        println!("{:?}", Hoge::di().await);
+        println!("{:?}", Hoge2::di().await);
+        println!("{:?}", Hoge3::di());
     }
 }
