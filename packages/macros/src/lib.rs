@@ -388,8 +388,17 @@ fn build_portal(
 
         let async_di_exprs = async_field_dis.iter().map(|f| &f.di_expr);
         let async_fields = async_field_dis.iter().map(|f| &f.field_ident);
-        let async_quote = quote! {
-            let (#(#async_fields),*) = futures::join!(#(#async_di_exprs),*);
+        let async_quote = if async_field_dis.len() > 1 {
+            quote! {
+                let (#(#async_fields),*) = futures::join!(#(#async_di_exprs),*);
+            }
+        } else if async_field_dis.len() == 1 {
+            quote! {
+
+            let #(#async_fields)* = #(#async_di_exprs)*.await;
+            }
+        } else {
+            quote! {}
         };
         let mut sync_quotes = sync_field_dis
             .iter()
