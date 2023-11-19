@@ -382,20 +382,20 @@ fn build_portal(
     field_dis: Vec<FieldDI>,
     is_totally_async: bool,
 ) -> proc_macro2::TokenStream {
-    let field_di_quotes = if cfg!(feature = "futures-join") {
+    let to_var_name = |s: &syn::Ident| format_ident!("__di_{}", &s);
+    let di_var_quotes = if cfg!(feature = "futures-join") {
         let (async_field_dis, sync_field_dis): (Vec<_>, Vec<_>) =
             field_dis.iter().partition(|f| f.is_async);
 
         let async_di_exprs = async_field_dis.iter().map(|f| &f.di_expr);
-        let async_fields = async_field_dis.iter().map(|f| &f.field_ident);
+        let async_var_names = async_field_dis.iter().map(|f| to_var_name(&f.field_ident));
         let async_quote = if async_field_dis.len() > 1 {
             quote! {
-                let (#(#async_fields),*) = futures::join!(#(#async_di_exprs),*);
+                let (#(#async_var_names),*) = futures::join!(#(#async_di_exprs),*);
             }
         } else if async_field_dis.len() == 1 {
             quote! {
-
-            let #(#async_fields)* = #(#async_di_exprs)*.await;
+                let #(#async_var_names)* = #(#async_di_exprs)*.await;
             }
         } else {
             quote! {}
@@ -404,9 +404,10 @@ fn build_portal(
             .iter()
             .map(|f| {
                 let ident = &f.field_ident;
+                let var_name = to_var_name(&ident);
                 let expr = &f.di_expr;
                 quote! {
-                    let #ident = #expr;
+                    let #var_name = #expr;
                 }
             })
             .collect::<Vec<_>>();
@@ -419,27 +420,34 @@ fn build_portal(
             .iter()
             .map(|f| {
                 let ident = &f.field_ident;
+                let var_name = to_var_name(&ident);
                 let expr = &f.di_expr;
                 if f.is_async {
                     quote! {
-                        let #ident = #expr.await;
+                        let #var_name = #expr.await;
                     }
                 } else {
                     quote! {
-                        let #ident = #expr;
+                        let #var_name = #expr;
                     }
                 }
             })
             .collect::<Vec<_>>()
     };
 
-    let field_idents = field_dis.iter().map(|f| &f.field_ident);
+    let field_idents = field_dis.iter().map(|f| {
+        let ident = &f.field_ident;
+        let var_name = to_var_name(&f.field_ident);
+        quote! {
+            #ident: #var_name
+        }
+    });
     if is_totally_async {
         quote! {
             #[async_trait::async_trait]
             impl portaldi::AsyncDIPortal for #ident {
                 async fn create_for_di(container: &portaldi::DIContainer) -> Self {
-                    #(#field_di_quotes)*
+                    #(#di_var_quotes)*
                     #ident { #(#field_idents),* }
                 }
             }
@@ -448,7 +456,7 @@ fn build_portal(
         quote! {
             impl portaldi::DIPortal for #ident {
                 fn create_for_di(container: &portaldi::DIContainer) -> Self {
-                    #(#field_di_quotes)*
+                    #(#di_var_quotes)*
                     #ident { #(#field_idents),* }
                 }
             }
