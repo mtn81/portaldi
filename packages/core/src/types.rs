@@ -1,7 +1,7 @@
 //! Type definitions.
 
 /// Represents depencency (component) type.
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(target_arch = "wasm32"))]
 pub type DI<T> = std::sync::Arc<T>;
-#[cfg(feature = "wasm")]
+#[cfg(target_arch = "wasm32")]
 pub type DI<T> = std::rc::Rc<T>;
