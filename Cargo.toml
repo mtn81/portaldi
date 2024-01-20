@@ -8,7 +8,7 @@ exclude = [
 resolver = "2"
 
 [workspace.package]
-version = "0.2.9" #tag:release-version
+version = "0.2.10" #tag:release-version
 edition = "2021"
 authors = ["mtn81 <nantsuka2011@gmail.com>"]
 license = "MIT OR Apache-2.0"
@@ -16,8 +16,8 @@ repository = "https://github.com/mtn81/portaldi"
 
 [workspace.dependencies.portaldi-core]
 path = "packages/core"
-version = "0.2.9" #tag:release-version
+version = "0.2.10" #tag:release-version
 
 [workspace.dependencies.portaldi-macros]
 path = "packages/macros"
-version = "0.2.9" #tag:release-version
+version = "0.2.10" #tag:release-version
