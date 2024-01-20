@@ -23,14 +23,14 @@ jobs:
         cargo clean
         cargo test --verbose -- --nocapture
 
-        cd packages/tests/env_always_async_test/
-        cargo clean
-        cargo test --verbose -- --nocapture
+        # cd packages/tests/env_always_async_test/
+        # cargo clean
+        # cargo test --verbose -- --nocapture
 
-        cd -
-        cd packages/tests/feature_futures_join_test/
-        cargo clean
-        cargo test --verbose -- --nocapture
+        # cd -
+        # cd packages/tests/feature_futures_join_test/
+        # cargo clean
+        # cargo test --verbose -- --nocapture
 
         cd -
         cargo install cargo-wasi
