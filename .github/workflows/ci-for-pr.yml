@@ -12,6 +12,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Use wasmtime 0.21.0
+      uses: mwilliamson/setup-wasmtime-action@v2
+      with:
+        wasmtime-version: "0.21.0"
+
     - uses: actions/checkout@v3
     - name: Run tests
       run: |
