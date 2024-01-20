@@ -32,7 +32,7 @@ jobs:
         # cargo clean
         # cargo test --verbose -- --nocapture
 
-        cd -
+        # cd -
         cargo install cargo-wasi
         cd packages/tests/wasm_test/
         cargo clean
