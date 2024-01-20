@@ -28,6 +28,7 @@ jobs:
         # cargo test --verbose -- --nocapture
 
         # cd -
+        cargo install cargo-wasi
         cd packages/tests/wasm_test/
         cargo clean
         cargo wasi test --verbose -- --nocapture
