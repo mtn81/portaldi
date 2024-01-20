@@ -1,0 +1,31 @@
+name: "Run test for all packages"
+description: ""
+runs:
+  using: "composite"
+  steps:
+    - name: Use wasmtime 0.21.0
+      uses: mwilliamson/setup-wasmtime-action@v2
+      with:
+        wasmtime-version: "0.21.0"
+
+    - uses: actions/checkout@v3
+    - name: Run tests
+      shell: bash
+      run: |
+        cargo clean
+        cargo test --verbose -- --nocapture
+
+        cd packages/tests/env_always_async_test/
+        cargo clean
+        cargo test --verbose -- --nocapture
+
+        cd -
+        cd packages/tests/feature_futures_join_test/
+        cargo clean
+        cargo test --verbose -- --nocapture
+
+        cd -
+        cargo install cargo-wasi
+        cd packages/tests/wasm_test/
+        cargo clean
+        cargo wasi test --verbose -- --nocapture

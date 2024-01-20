@@ -8,32 +8,8 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - name: Use wasmtime 0.21.0
-      uses: mwilliamson/setup-wasmtime-action@v2
-      with:
-        wasmtime-version: "0.21.0"
-
-    - uses: actions/checkout@v3
-    - name: Run tests
-      run: |
-        cargo clean
-        cargo test --verbose -- --nocapture
-
-        cd packages/tests/env_always_async_test/
-        cargo clean
-        cargo test --verbose -- --nocapture
-
-        cd -
-        cd packages/tests/feature_futures_join_test/
-        cargo clean
-        cargo test --verbose -- --nocapture
-
-        cd -
-        cargo install cargo-wasi
-        cd packages/tests/wasm_test/
-        cargo clean
-        cargo wasi test --verbose -- --nocapture
+    - name: Test
+      uses: ./.github/actions/test-all-packages
