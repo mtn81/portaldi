@@ -30,4 +30,4 @@ jobs:
         cd -
         cd packages/tests/wasm_test/
         cargo clean
-        cargo test --verbose -- --nocapture
+        cargo wasi test --verbose -- --nocapture
