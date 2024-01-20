@@ -20,19 +20,19 @@ jobs:
     - uses: actions/checkout@v3
     - name: Run tests
       run: |
-        # cargo clean
-        # cargo test --verbose -- --nocapture
+        cargo clean
+        cargo test --verbose -- --nocapture
 
-        # cd packages/tests/env_always_async_test/
-        # cargo clean
-        # cargo test --verbose -- --nocapture
+        cd packages/tests/env_always_async_test/
+        cargo clean
+        cargo test --verbose -- --nocapture
 
-        # cd -
-        # cd packages/tests/feature_futures_join_test/
-        # cargo clean
-        # cargo test --verbose -- --nocapture
+        cd -
+        cd packages/tests/feature_futures_join_test/
+        cargo clean
+        cargo test --verbose -- --nocapture
 
-        # cd -
+        cd -
         cargo install cargo-wasi
         cd packages/tests/wasm_test/
         cargo clean
