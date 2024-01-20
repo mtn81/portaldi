@@ -1,0 +1,12 @@
+[package]
+name = "wasm_test"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+portaldi = { path = "../../index", features = ["wasm"] }
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

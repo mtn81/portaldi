@@ -237,11 +237,12 @@ pub fn async_di_provider(input: TokenStream) -> TokenStream {
         ..
     } = parse_macro_input!(input as DefDiProviderInput);
     let provider_ident = format_ident!("{}Provider", target_ident);
+    let async_trait_attr = async_trait_attr();
 
     let result = quote! {
         pub struct #provider_ident;
 
-        #[async_trait::async_trait]
+        #async_trait_attr
         impl AsyncDIProvider for #provider_ident {
             type Output = #kw_dyn #target_ident;
 
@@ -327,6 +328,14 @@ fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
     return None;
 }
 
+fn async_trait_attr() -> proc_macro2::TokenStream {
+    if cfg!(feature = "wasm") {
+        quote! { #[async_trait::async_trait(?Send)] }
+    } else {
+        quote! { #[async_trait::async_trait] }
+    }
+}
+
 fn build_provider(
     ident: &Ident,
     provide_target: &Ident,
@@ -334,10 +343,11 @@ fn build_provider(
 ) -> proc_macro2::TokenStream {
     let provider_type = quote::format_ident!("{}Provider", provide_target);
     if is_async {
+        let asyn_trait_attr = async_trait_attr();
         quote! {
             pub struct #provider_type;
 
-            #[async_trait::async_trait]
+            #asyn_trait_attr
             impl portaldi::AsyncDIProvider for #provider_type {
                 type Output = dyn #provide_target;
                 async fn di_on(container: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
@@ -443,8 +453,10 @@ fn build_portal(
         }
     });
     if is_totally_async {
+        let async_trait_attr = async_trait_attr();
+
         quote! {
-            #[async_trait::async_trait]
+            #async_trait_attr
             impl portaldi::AsyncDIPortal for #ident {
                 async fn create_for_di(container: &portaldi::DIContainer) -> Self {
                     #(#di_var_quotes)*
