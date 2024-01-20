@@ -3,11 +3,12 @@ members = ["packages/index", "packages/core", "packages/macros"]
 exclude = [
     "packages/tests/env_always_async_test",
     "packages/tests/feature_futures_join_test",
+    "packages/tests/wasm_test",
 ]
 resolver = "2"
 
 [workspace.package]
-version = "0.2.7" #tag:release-version
+version = "0.2.7"                                #tag:release-version
 edition = "2021"
 authors = ["mtn81 <nantsuka2011@gmail.com>"]
 license = "MIT OR Apache-2.0"
@@ -15,8 +16,8 @@ repository = "https://github.com/mtn81/portaldi"
 
 [workspace.dependencies.portaldi-core]
 path = "packages/core"
-version = "0.2.7" #tag:release-version
+version = "0.2.7"      #tag:release-version
 
 [workspace.dependencies.portaldi-macros]
 path = "packages/macros"
-version = "0.2.7" #tag:release-version
+version = "0.2.7"        #tag:release-version

@@ -1,6 +1,7 @@
 //! Type definitions.
 
-use std::sync::Arc;
-
 /// Represents depencency (component) type.
-pub type DI<T> = Arc<T>;
+#[cfg(not(feature = "wasm"))]
+pub type DI<T> = std::sync::Arc<T>;
+#[cfg(feature = "wasm")]
+pub type DI<T> = std::rc::Rc<T>;
