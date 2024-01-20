@@ -3,18 +3,18 @@
 use crate::{traits::DITarget, types::DI};
 use std::{any::Any, collections::HashMap, future::Future};
 
-#[cfg(feature = "wasm")]
+#[cfg(target_arch = "wasm32")]
 use std::cell::RefCell;
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::Mutex;
 
 /// DI container holds component refs.
 #[derive(Debug)]
 pub struct DIContainer {
     /// Hold components by its type name (FQTN).
-    #[cfg(feature = "wasm")]
+    #[cfg(target_arch = "wasm32")]
     components: RefCell<HashMap<String, DI<dyn Any>>>,
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(not(target_arch = "wasm32"))]
     components: Mutex<HashMap<String, DI<dyn Any + Send + Sync>>>,
 }
 
@@ -22,18 +22,18 @@ impl DIContainer {
     /// Create new instance.
     pub fn new() -> DIContainer {
         DIContainer {
-            #[cfg(feature = "wasm")]
+            #[cfg(target_arch = "wasm32")]
             components: RefCell::new(HashMap::new()),
-            #[cfg(not(feature = "wasm"))]
+            #[cfg(not(target_arch = "wasm32"))]
             components: Mutex::new(HashMap::new()),
         }
     }
 
     /// Get a component by type.
     pub fn get<T: DITarget>(&self) -> Option<DI<T>> {
-        #[cfg(feature = "wasm")]
+        #[cfg(target_arch = "wasm32")]
         let comps = self.components.borrow();
-        #[cfg(not(feature = "wasm"))]
+        #[cfg(not(target_arch = "wasm32"))]
         let comps = self.components.lock().unwrap();
         comps
             .get(std::any::type_name::<T>())
@@ -42,9 +42,9 @@ impl DIContainer {
 
     /// Put a component into the container.
     pub fn put_if_absent<T: DITarget>(&self, c: &DI<T>) -> DI<T> {
-        #[cfg(feature = "wasm")]
+        #[cfg(target_arch = "wasm32")]
         let mut components = self.components.borrow_mut();
-        #[cfg(not(feature = "wasm"))]
+        #[cfg(not(target_arch = "wasm32"))]
         let mut components = self.components.lock().unwrap();
         let key = std::any::type_name::<T>();
         let value = components

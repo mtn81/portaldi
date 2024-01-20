@@ -28,4 +28,3 @@ proc-macro = true
 [features]
 default = []
 futures-join = []
-wasm = []

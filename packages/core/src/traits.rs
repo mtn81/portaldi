@@ -3,20 +3,20 @@
 use async_trait::async_trait;
 
 use crate::container::DIContainer;
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(target_arch = "wasm32"))]
 use crate::globals::INSTANCE;
 use crate::types::DI;
 
 /// Represent DI target type.
 /// It requires thread safety.
-#[cfg(feature = "wasm")]
+#[cfg(target_arch = "wasm32")]
 pub trait DITarget: 'static {}
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(target_arch = "wasm32"))]
 pub trait DITarget: Send + Sync + 'static {}
 
-#[cfg(feature = "wasm")]
+#[cfg(target_arch = "wasm32")]
 impl<T: 'static> DITarget for T {}
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(target_arch = "wasm32"))]
 impl<T: Send + Sync + 'static> DITarget for T {}
 
 /// Add `di` methods for DI target types.
@@ -29,7 +29,7 @@ pub trait DIPortal {
         container.get_or_init(|| Self::create_for_di(container))
     }
 
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(not(target_arch = "wasm32"))]
     /// DI on the global container.
     fn di() -> DI<Self>
     where
@@ -43,8 +43,8 @@ pub trait DIPortal {
 }
 
 /// Add `di` methods for DI target types that needs async creation.
-#[cfg_attr(feature="wasm", async_trait(?Send))]
-#[cfg_attr(not(feature = "wasm"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 pub trait AsyncDIPortal {
     /// DI on a container.
     async fn di_on(container: &DIContainer) -> DI<Self>
@@ -56,7 +56,7 @@ pub trait AsyncDIPortal {
             .await
     }
 
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(not(target_arch = "wasm32"))]
     /// DI on the global container.
     async fn di() -> DI<Self>
     where
@@ -77,7 +77,7 @@ pub trait DIProvider {
     /// DI on a container.
     fn di_on(container: &DIContainer) -> DI<Self::Output>;
 
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(not(target_arch = "wasm32"))]
     /// DI on the global container.
     fn di() -> DI<Self::Output> {
         Self::di_on(&INSTANCE)
@@ -85,8 +85,8 @@ pub trait DIProvider {
 }
 
 /// Provides component instance for trait DI types that needs async creation.
-#[cfg_attr(feature="wasm", async_trait(?Send))]
-#[cfg_attr(not(feature = "wasm"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 pub trait AsyncDIProvider {
     /// Target trait type.
     type Output: ?Sized;
@@ -94,7 +94,7 @@ pub trait AsyncDIProvider {
     /// DI on a container.
     async fn di_on(container: &DIContainer) -> DI<Self::Output>;
 
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(not(target_arch = "wasm32"))]
     /// DI on the global container.
     async fn di() -> DI<Self::Output> {
         Self::di_on(&INSTANCE).await
