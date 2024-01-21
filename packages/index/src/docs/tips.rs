@@ -2,7 +2,7 @@
 //!
 //! ### Hide `DIProvider` implementation details.
 //!
-//! portaldi's macro generates `DIProvider` implementation block next to a target struct.
+//! The PortalDI's macro generates `DIProvider` implementation block next to a target struct.
 //! And you needs import the DIProvider into dependent's scope.
 //!
 //! ```
