@@ -6,7 +6,7 @@ use std::{any::Any, collections::HashMap, future::Future};
 #[cfg(target_arch = "wasm32")]
 use std::cell::RefCell;
 #[cfg(not(target_arch = "wasm32"))]
-use std::sync::Mutex;
+use std::sync::RwLock;
 
 /// DI container holds component refs.
 #[derive(Debug)]
@@ -15,7 +15,7 @@ pub struct DIContainer {
     #[cfg(target_arch = "wasm32")]
     components: RefCell<HashMap<String, DI<dyn Any>>>,
     #[cfg(not(target_arch = "wasm32"))]
-    components: Mutex<HashMap<String, DI<dyn Any + Send + Sync>>>,
+    components: RwLock<HashMap<String, DI<dyn Any + Send + Sync>>>,
 }
 
 impl DIContainer {
@@ -25,7 +25,7 @@ impl DIContainer {
             #[cfg(target_arch = "wasm32")]
             components: RefCell::new(HashMap::new()),
             #[cfg(not(target_arch = "wasm32"))]
-            components: Mutex::new(HashMap::new()),
+            components: RwLock::new(HashMap::new()),
         }
     }
 
@@ -34,7 +34,7 @@ impl DIContainer {
         #[cfg(target_arch = "wasm32")]
         let comps = self.components.borrow();
         #[cfg(not(target_arch = "wasm32"))]
-        let comps = self.components.lock().unwrap();
+        let comps = self.components.read().unwrap();
         comps
             .get(std::any::type_name::<T>())
             .map(|c| c.clone().downcast::<T>().unwrap())
@@ -45,7 +45,7 @@ impl DIContainer {
         #[cfg(target_arch = "wasm32")]
         let mut components = self.components.borrow_mut();
         #[cfg(not(target_arch = "wasm32"))]
-        let mut components = self.components.lock().unwrap();
+        let mut components = self.components.write().unwrap();
         let key = std::any::type_name::<T>();
         let value = components
             .get(key)
