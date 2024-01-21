@@ -1,5 +1,3 @@
-cargo-features = ["per-package-target"]
-
 [package]
 name = "portaldi-core"
 version.workspace = true
@@ -8,7 +6,6 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Core functionalities for portaldi."
-# forced-target = "wasm32-unknown-unknown"
 
 [dependencies]
 once_cell = "1.16"
