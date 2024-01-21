@@ -3,7 +3,6 @@
 use async_trait::async_trait;
 
 use crate::container::DIContainer;
-#[cfg(not(target_arch = "wasm32"))]
 use crate::globals::INSTANCE;
 use crate::types::DI;
 
@@ -29,13 +28,20 @@ pub trait DIPortal {
         container.get_or_init(|| Self::create_for_di(container))
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     /// DI on the global container.
+    #[cfg(not(target_arch = "wasm32"))]
     fn di() -> DI<Self>
     where
         Self: Sized + DITarget,
     {
         Self::di_on(&INSTANCE)
+    }
+    #[cfg(target_arch = "wasm32")]
+    fn di() -> DI<Self>
+    where
+        Self: Sized + DITarget,
+    {
+        Self::di_on(INSTANCE.with(|i| i.clone()).as_ref())
     }
 
     /// Create new instance for DI.
@@ -56,13 +62,20 @@ pub trait AsyncDIPortal {
             .await
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     /// DI on the global container.
+    #[cfg(not(target_arch = "wasm32"))]
     async fn di() -> DI<Self>
     where
         Self: Sized + DITarget,
     {
         Self::di_on(&INSTANCE).await
+    }
+    #[cfg(target_arch = "wasm32")]
+    async fn di() -> DI<Self>
+    where
+        Self: Sized + DITarget,
+    {
+        Self::di_on(INSTANCE.with(|i| i.clone()).as_ref()).await
     }
 
     /// Create new instance for DI.
@@ -77,10 +90,14 @@ pub trait DIProvider {
     /// DI on a container.
     fn di_on(container: &DIContainer) -> DI<Self::Output>;
 
-    #[cfg(not(target_arch = "wasm32"))]
     /// DI on the global container.
+    #[cfg(not(target_arch = "wasm32"))]
     fn di() -> DI<Self::Output> {
         Self::di_on(&INSTANCE)
+    }
+    #[cfg(target_arch = "wasm32")]
+    fn di() -> DI<Self::Output> {
+        Self::di_on(INSTANCE.with(|i| i.clone()).as_ref())
     }
 }
 
@@ -94,10 +111,14 @@ pub trait AsyncDIProvider {
     /// DI on a container.
     async fn di_on(container: &DIContainer) -> DI<Self::Output>;
 
-    #[cfg(not(target_arch = "wasm32"))]
     /// DI on the global container.
+    #[cfg(not(target_arch = "wasm32"))]
     async fn di() -> DI<Self::Output> {
         Self::di_on(&INSTANCE).await
+    }
+    #[cfg(target_arch = "wasm32")]
+    async fn di() -> DI<Self::Output> {
+        Self::di_on(INSTANCE.with(|i| i.clone()).as_ref()).await
     }
 }
 

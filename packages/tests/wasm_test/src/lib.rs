@@ -32,6 +32,11 @@ mod tests {
 
     #[test]
     fn test_sync() {
+        let hoge = Hoge::di();
+        println!("{:?}", hoge)
+    }
+    #[test]
+    fn test_sync_2() {
         let c = DIContainer::new();
         let hoge = Hoge::di_on(&c);
         println!("{:?}", hoge)
@@ -39,6 +44,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_async() {
+        let hoge = AsyncHoge::di().await;
+        println!("{:?}", hoge)
+    }
+    #[tokio::test]
+    async fn test_async_2() {
         let c = DIContainer::new();
         let hoge = AsyncHoge::di_on(&c).await;
         println!("{:?}", hoge)
