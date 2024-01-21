@@ -2,7 +2,7 @@
 //!
 //! ### Basics
 //!
-//! * portaldi handle a dependency as a field (constructor injection). Dependencies must be specified as `DI<T>`.
+//! * PortalDI handle a dependency as a field (constructor injection). Dependencies must be specified as `DI<T>`.
 //!
 //! * Depencency types must implement `DITarget` and be thread safe.
 //!   * Traits must be DITarget.
@@ -12,14 +12,14 @@
 //!   ```
 //!   * Structs automatically become DITarget when its fileds are `Send + Sync`.
 //!
-//! * In portaldi, components are handled as singleton and with lazy initioalization by default.
+//! * In PortalDI, components are handled as singleton and with lazy initioalization by default.
 //!   * If a component must be initialized in advance, you can explicitly call `di` method in where you want.
 //!   * If a component must be prototype (1 instance by 1 ref), you can annotate with `prototype`.
 //!
 //! ### Structs dependencies
 //!
 //! When a dependency is a struct, you can simply annotate on a target.
-//! The portaldi-macro generates DIPortal implementation for a target struct.
+//! The PortalDI's macro generates DIPortal implementation for a target struct.
 //!
 //! ```
 //! use portaldi::*;
@@ -42,7 +42,7 @@
 //! ### Trait object dependencies
 //!
 //! When a dependency is a trait object, you can annotate a target struct with a `provide` attribute.
-//! The portaldi-macro generates DIPortal implementation for the target struct and DIProvider implementation for the trait.
+//! The PortalDI's macro generates DIPortal implementation for the target struct and DIProvider implementation for the trait.
 //! The dependent struct's scope must have the depencency DIProvider.
 //!
 //! ```
