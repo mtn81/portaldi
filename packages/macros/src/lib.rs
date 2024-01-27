@@ -111,7 +111,7 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
 /// struct Hoge {}
 ///
 /// // When you needs manual creation logic, define DIPortal implementation.
-/// #[portaldi::provider(HogeI)] // HogeIProvider will be generated.
+/// #[provider(HogeI)] // HogeIProvider will be generated.
 /// impl DIPortal for Hoge {
 ///   ...
 /// }
@@ -200,10 +200,10 @@ pub fn di_provider(input: TokenStream) -> TokenStream {
 
     let result = quote! {
         pub struct #provider_ident;
-        impl portaldi::DIProvider for #provider_ident {
+        impl DIProvider for #provider_ident {
             type Output = #kw_dyn #target_ident;
 
-            fn di_on(c: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
+            fn di_on(c: &DIContainer) -> DI<Self::Output> {
                 c.get_or_init(|| (#create_fn)(c))
             }
         }
@@ -243,10 +243,10 @@ pub fn async_di_provider(input: TokenStream) -> TokenStream {
         pub struct #provider_ident;
 
         #async_trait_attr
-        impl portaldi::AsyncDIProvider for #provider_ident {
+        impl AsyncDIProvider for #provider_ident {
             type Output = #kw_dyn #target_ident;
 
-            async fn di_on(c: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
+            async fn di_on(c: &DIContainer) -> DI<Self::Output> {
                 c.get_or_init_async(|| (#create_fn)(c)).await
             }
         }
@@ -347,9 +347,9 @@ fn build_provider(
             pub struct #provider_type;
 
             #asyn_trait_attr
-            impl portaldi::AsyncDIProvider for #provider_type {
+            impl AsyncDIProvider for #provider_type {
                 type Output = dyn #provide_target;
-                async fn di_on(container: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
+                async fn di_on(container: &DIContainer) -> DI<Self::Output> {
                     #ident::di_on(container).await
                 }
             }
@@ -358,9 +358,9 @@ fn build_provider(
         quote! {
             pub struct #provider_type;
 
-            impl portaldi::DIProvider for #provider_type {
+            impl DIProvider for #provider_type {
                 type Output = dyn #provide_target;
-                fn di_on(container: &portaldi::DIContainer) -> portaldi::DI<dyn #provide_target> {
+                fn di_on(container: &DIContainer) -> DI<dyn #provide_target> {
                     #ident::di_on(container)
                 }
             }
@@ -456,8 +456,8 @@ fn build_portal(
 
         quote! {
             #async_trait_attr
-            impl portaldi::AsyncDIPortal for #ident {
-                async fn create_for_di(container: &portaldi::DIContainer) -> Self {
+            impl AsyncDIPortal for #ident {
+                async fn create_for_di(container: &DIContainer) -> Self {
                     #(#di_var_quotes)*
                     #ident { #(#field_idents),* }
                 }
@@ -465,8 +465,8 @@ fn build_portal(
         }
     } else {
         quote! {
-            impl portaldi::DIPortal for #ident {
-                fn create_for_di(container: &portaldi::DIContainer) -> Self {
+            impl DIPortal for #ident {
+                fn create_for_di(container: &DIContainer) -> Self {
                     #(#di_var_quotes)*
                     #ident { #(#field_idents),* }
                 }
