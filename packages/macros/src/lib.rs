@@ -200,10 +200,10 @@ pub fn di_provider(input: TokenStream) -> TokenStream {
 
     let result = quote! {
         pub struct #provider_ident;
-        impl DIProvider for #provider_ident {
+        impl portaldi::DIProvider for #provider_ident {
             type Output = #kw_dyn #target_ident;
 
-            fn di_on(c: &DIContainer) -> DI<Self::Output> {
+            fn di_on(c: &potaldi::DIContainer) -> portaldi::DI<Self::Output> {
                 c.get_or_init(|| (#create_fn)(c))
             }
         }
@@ -243,10 +243,10 @@ pub fn async_di_provider(input: TokenStream) -> TokenStream {
         pub struct #provider_ident;
 
         #async_trait_attr
-        impl AsyncDIProvider for #provider_ident {
+        impl portaldi::AsyncDIProvider for #provider_ident {
             type Output = #kw_dyn #target_ident;
 
-            async fn di_on(c: &DIContainer) -> DI<Self::Output> {
+            async fn di_on(c: &potaldi::DIContainer) -> portaldi::DI<Self::Output> {
                 c.get_or_init_async(|| (#create_fn)(c)).await
             }
         }
@@ -303,13 +303,13 @@ enum DIType<'a> {
 
 fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
     if let Type::Path(x) = ty {
-        let first_path_segment = x.path.segments.first().unwrap();
+        let last_path_segment = x.path.segments.last().unwrap();
 
-        if first_path_segment.ident != "DI" {
+        if last_path_segment.ident != "DI" {
             return None;
         }
 
-        if let PathArguments::AngleBracketed(x) = &first_path_segment.arguments {
+        if let PathArguments::AngleBracketed(x) = &last_path_segment.arguments {
             match x.args.first().unwrap() {
                 GenericArgument::Type(Type::TraitObject(x)) => {
                     if let TypeParamBound::Trait(x) = x.bounds.first().unwrap() {
