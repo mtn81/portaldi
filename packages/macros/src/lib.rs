@@ -203,7 +203,7 @@ pub fn di_provider(input: TokenStream) -> TokenStream {
         impl portaldi::DIProvider for #provider_ident {
             type Output = #kw_dyn #target_ident;
 
-            fn di_on(c: &potaldi::DIContainer) -> portaldi::DI<Self::Output> {
+            fn di_on(c: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
                 c.get_or_init(|| (#create_fn)(c))
             }
         }
@@ -246,7 +246,7 @@ pub fn async_di_provider(input: TokenStream) -> TokenStream {
         impl portaldi::AsyncDIProvider for #provider_ident {
             type Output = #kw_dyn #target_ident;
 
-            async fn di_on(c: &potaldi::DIContainer) -> portaldi::DI<Self::Output> {
+            async fn di_on(c: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
                 c.get_or_init_async(|| (#create_fn)(c)).await
             }
         }
