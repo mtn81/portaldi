@@ -9,6 +9,8 @@ async fn test_di() {
 use bar::*;
 use baz::*;
 use foo::*;
+use piyo::*;
+
 #[derive(DIPortal)]
 struct Hoge {
     // async di by Provider
@@ -23,6 +25,11 @@ struct Hoge {
     // di by manual Provider
     #[inject(async)]
     _baz: DI<dyn Baz>,
+    // di for a trait with generics
+    #[inject(async)]
+    _piyo: DI<dyn Piyo<String, bool>>,
+    #[inject(async)]
+    _piyo2: DI<dyn Piyo2<String, bool>>,
 }
 
 mod foo {
@@ -76,11 +83,28 @@ mod baz {
     impl Baz for BazTest {}
 
     async_di_provider!(dyn Baz, |_c| async { BazTest {} });
+}
 
-    pub trait Baz2<A, B>: DITarget {}
+mod piyo {
+    use super::*;
 
-    struct Baz2Test {}
-    impl Baz2<String, bool> for Baz2Test {}
+    pub trait Piyo<A, B>: DITarget {}
 
-    async_di_provider!(dyn Baz2<String, bool>, |_c| async { Baz2Test {} });
+    struct PiyoTest {}
+    impl Piyo<String, bool> for PiyoTest {}
+
+    async_di_provider!(dyn Piyo<String, bool>, |_c| async { PiyoTest {} });
+
+    pub trait Piyo2<A, B>: DITarget {}
+
+    struct Piyo2Test {}
+    impl Piyo2<String, bool> for Piyo2Test {}
+
+    #[portaldi::provider(Piyo2<String, bool>)]
+    #[async_trait]
+    impl AsyncDIPortal for Piyo2Test {
+        async fn create_for_di(_container: &DIContainer) -> Self {
+            Piyo2Test {}
+        }
+    }
 }
