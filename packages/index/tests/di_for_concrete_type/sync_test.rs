@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::common::*;
 
 #[test]
@@ -57,3 +59,11 @@ pub struct Yah {}
 
 // implements provider manually
 di_provider!(Yah, |_c| { Yah {} });
+
+pub struct Yah2<A, B> {
+    a: PhantomData<A>,
+    b: PhantomData<B>,
+}
+
+// implements provider manually
+di_provider!(Yah2<String, bool>, |_c| { Yah2 { a: PhantomData::<String>, b: PhantomData::<bool>} });
