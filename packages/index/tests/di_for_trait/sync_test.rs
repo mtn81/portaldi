@@ -60,4 +60,11 @@ mod baz {
     impl Baz for BazTest {}
 
     di_provider!(dyn Baz, |_c| BazTest {});
+
+    pub trait Baz2<A, B>: DITarget {}
+
+    struct Baz2Test {}
+    impl Baz2<String, bool> for Baz2Test {}
+
+    di_provider!(dyn Baz2<String, bool>, |_c| Baz2Test {});
 }
