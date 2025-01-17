@@ -10,11 +10,12 @@ fn test_di() {
 #[derive(DIPortal)]
 struct Hoge {
     foo: DI<Foo>,
+    #[inject(Bar)]
     bar: DI<Bar>,
     #[inject(BazProvider)]
     baz: DI<Baz>,
-    #[inject(with_provider)]
     yah: DI<Yah>,
+    _yah3: DI<Yah3<String, u8>>,
 }
 
 impl PartialEq for Hoge {
@@ -32,6 +33,7 @@ impl PartialEq for Hoge {
 
 #[derive(DIPortal)]
 struct Foo {
+    #[inject(Bar)]
     bar: DI<Bar>,
 }
 
@@ -67,3 +69,19 @@ pub struct Yah2<A, B> {
 
 // implements provider manually
 di_provider!(Yah2<String, bool>, |_c| { Yah2 { a: PhantomData::<String>, b: PhantomData::<bool>} });
+
+pub struct Yah3<A, B> {
+    a: PhantomData<A>,
+    b: PhantomData<B>,
+}
+
+// implements manually & self provider attribute
+#[provider(self)]
+impl DIPortal for Yah3<String, u8> {
+    fn create_for_di(_container: &portaldi::DIContainer) -> Self {
+        Yah3 {
+            a: PhantomData,
+            b: PhantomData,
+        }
+    }
+}

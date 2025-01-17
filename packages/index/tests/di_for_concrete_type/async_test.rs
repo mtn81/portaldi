@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::common::*;
 
 #[tokio::test]
@@ -8,12 +10,14 @@ async fn test_di() {
 #[derive(DIPortal, PartialEq)]
 struct AHoge {
     foo: DI<Foo>,
-    #[inject(async)]
+    #[inject(async, ABar)]
     bar: DI<ABar>,
     #[inject(ABazProvider, async)]
     baz: DI<ABaz>,
-    #[inject(with_provider, async)]
+    #[inject(async)]
     yah: DI<AYah>,
+    #[inject(async)]
+    yah2: DI<AYah2<String, u8>>,
 }
 
 #[derive(DIPortal, PartialEq)]
@@ -43,3 +47,21 @@ impl AsyncDIProvider for ABazProvider {
 #[derive(PartialEq)]
 pub struct AYah {}
 async_di_provider!(AYah, |_c| async { AYah {} });
+
+#[derive(PartialEq)]
+pub struct AYah2<A, B> {
+    a: PhantomData<A>,
+    b: PhantomData<B>,
+}
+
+// implements manually & self provider attribute
+#[provider(self)]
+#[async_trait]
+impl AsyncDIPortal for AYah2<String, u8> {
+    async fn create_for_di(_container: &portaldi::DIContainer) -> Self {
+        AYah2 {
+            a: PhantomData,
+            b: PhantomData,
+        }
+    }
+}

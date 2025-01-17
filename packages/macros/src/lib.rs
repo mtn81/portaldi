@@ -5,13 +5,13 @@ use quote::{format_ident, quote};
 use regex::Regex;
 use syn::{
     parse::{Parse, ParseStream},
-    parse_macro_input,
+    parse_macro_input, parse_quote,
     punctuated::Punctuated,
     Attribute, Data, DeriveInput, GenericArgument, GenericParam, Generics, Ident, ImplItem,
-    ItemImpl, Meta, Path, PathArguments, Token, Type, TypeParam, TypeParamBound,
+    ItemImpl, Meta, Path, PathArguments, Token, Type, TypeParam, TypeParamBound, Visibility,
 };
 
-/// Generate a [`DIPortal`] or [`AsyncDIPortal`] implementation. (derive macro)
+/// Generate a [`DIPortal`] and [`DIProvider`] or [`AsyncDIPortal`] and [`AsyncDIProvider`] implementation.
 ///
 /// * `provide`: generate [`DIProvider`] implementation for a specified trait.
 ///   ```ignore
@@ -41,13 +41,12 @@ use syn::{
 ///     foo2: DI<dyn FooI>,
 ///     #[inject(async)]  // Bar nedds async creation,
 ///                       // and consequently AsyncDIPortal for Hoge will be generated.
+///                       // implicitly BarProvider is used.
 ///     bar: DI<Bar>,
 ///     #[inject(MyBazProvider)] // specify DI provider for a another crate concrete type.
 ///     baz: DI<Baz>,
-///     #[inject(with_provider)] // specify DI provider for a another crate concrete type (short hand notation).
-///     baz2: DI<Baz>,
-///
-///     piyo: DI<dyn IPiyo>, // implicitly IPiyoProvider is used.
+///     baz2: DI<Baz>,            // implicitly BarProvider is used.
+///     piyo: DI<dyn IPiyo>,      // implicitly IPiyoProvider is used.
 ///     piyo2: DI<dyn IPiyo2<A>>, // implicitly IPiyo2AProvider is used.
 ///   }
 ///   ```
@@ -60,7 +59,12 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
         .unwrap_or(false);
 
     let DeriveInput {
-        data, ident, attrs, ..
+        data,
+        vis,
+        ident,
+        generics,
+        attrs,
+        ..
     } = parse_macro_input!(input);
 
     match data {
@@ -72,12 +76,8 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
                     let inject_attr = parse_inject_attr(&f.attrs);
                     let is_async = is_always_async
                         || inject_attr.as_ref().map(|a| a.is_async).unwrap_or(false);
-                    let with_provider = inject_attr
-                        .as_ref()
-                        .map(|a| a.with_provider)
-                        .unwrap_or(false);
                     let inject_path = inject_attr.as_ref().and_then(|a| a.path.as_ref());
-                    let di_expr = build_field_di(&f, inject_path, with_provider);
+                    let di_expr = build_field_di(&f, inject_path);
                     let field_ident = f.ident.as_ref().unwrap().clone();
                     FieldDI {
                         field_ident,
@@ -92,13 +92,25 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
 
             let provider_quote = if let Some(provide_attr) = attr_of(&attrs, "provide") {
                 let provide_target = provide_attr.parse_args::<ProvideTarget>().unwrap();
-                build_provider(&ident, &provide_target, is_totally_async)
+                build_provider(&ident, &provide_target, is_totally_async, true, None)
             } else {
                 build_provider_by_env(&ident, is_totally_async)
             };
 
+            let self_provider_quote = build_provider(
+                &ident,
+                &ProvideTarget {
+                    ident: ident.clone(),
+                    generics: generics.clone(),
+                },
+                is_totally_async,
+                false,
+                Some(&vis),
+            );
+
             let result = quote! {
                 #provider_quote
+                #self_provider_quote
                 #di_portal_quote
             };
 
@@ -173,8 +185,8 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     // dbg!(&item_impl.self_ty);
-    let ident = match *item_impl.self_ty {
-        Type::Path(ref p) => p.path.segments.first().map(|s| &s.ident),
+    let (ident, path_args) = match *item_impl.self_ty {
+        Type::Path(ref p) => p.path.segments.last().map(|s| (&s.ident, &s.arguments)),
         _ => None,
     }
     .expect("impl type name not found.");
@@ -190,10 +202,22 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let is_async = di_method.sig.asyncness.is_some();
 
-    let provider_quote = args.provider_target.map_or_else(
-        || build_provider_by_env(&ident, is_async),
-        |target| build_provider(&ident, &target, is_async),
-    );
+    let provider_quote = match args {
+        ProviderArgs::TargetProvider(target) => {
+            build_provider(&ident, &target, is_async, true, None)
+        }
+        ProviderArgs::EnvProvider => build_provider_by_env(&ident, is_async),
+        ProviderArgs::SelfProvider => build_provider(
+            &ident,
+            &ProvideTarget {
+                ident: ident.clone(),
+                generics: parse_quote!(#path_args),
+            },
+            is_async,
+            false,
+            None,
+        ),
+    };
 
     // let q = quote! {
     //     #item_impl
@@ -352,14 +376,9 @@ fn attr_of<'a>(attrs: &'a Vec<Attribute>, name: &str) -> Option<&'a Attribute> {
     })
 }
 
-enum DIType<'a> {
-    Trait {
-        type_ident: &'a Ident,
-        type_params: Vec<&'a Ident>,
-    },
-    Concrete {
-        path: &'a Path,
-    },
+struct DIType<'a> {
+    type_ident: &'a Ident,
+    type_params: Vec<&'a Ident>,
 }
 
 fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
@@ -371,32 +390,37 @@ fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
         }
 
         if let PathArguments::AngleBracketed(x) = &last_path_segment.arguments {
-            match x.args.first().unwrap() {
+            let path = match x.args.first().unwrap() {
                 GenericArgument::Type(Type::TraitObject(x)) => {
                     if let TypeParamBound::Trait(x) = x.bounds.first().unwrap() {
-                        let last_seg = x.path.segments.last().unwrap();
-                        let type_params = match &last_seg.arguments {
-                            PathArguments::AngleBracketed(x) => x
-                                .args
-                                .iter()
-                                .flat_map(|arg| match arg {
-                                    GenericArgument::Type(Type::Path(p)) => p.path.get_ident(),
-                                    _ => None,
-                                })
-                                .collect(),
-                            _ => vec![],
-                        };
-
-                        return Some(DIType::Trait {
-                            type_ident: &last_seg.ident,
-                            type_params,
-                        });
+                        Some(&x.path)
+                    } else {
+                        None
                     }
                 }
-                GenericArgument::Type(Type::Path(x)) => {
-                    return Some(DIType::Concrete { path: &x.path });
-                }
-                _ => return None,
+                GenericArgument::Type(Type::Path(x)) => Some(&x.path),
+                _ => None,
+            };
+            if let Some(path) = path {
+                let last_seg = path.segments.last().unwrap();
+                let type_params = match &last_seg.arguments {
+                    PathArguments::AngleBracketed(x) => x
+                        .args
+                        .iter()
+                        .flat_map(|arg| match arg {
+                            GenericArgument::Type(Type::Path(p)) => {
+                                p.path.segments.last().map(|s| &s.ident)
+                            }
+                            _ => None,
+                        })
+                        .collect(),
+                    _ => vec![],
+                };
+
+                return Some(DIType {
+                    type_ident: &last_seg.ident,
+                    type_params,
+                });
             }
         }
     }
@@ -414,19 +438,23 @@ fn build_provider(
     ident: &Ident,
     provide_target: &ProvideTarget,
     is_async: bool,
+    for_trait: bool,
+    vis: Option<&Visibility>,
 ) -> proc_macro2::TokenStream {
     let type_params_str = type_params_str(&provide_target.generics);
     let provider_type = quote::format_ident!("{}{}Provider", provide_target.ident, type_params_str);
     let provide_target_ident = &provide_target.ident;
     let provide_target_generics = &provide_target.generics;
+    let dyn_keyword = if for_trait { Some(quote!(dyn)) } else { None };
+    let vis = vis.map(|vis| quote!(#vis)).unwrap_or(quote!(pub));
     if is_async {
         let asyn_trait_attr = async_trait_attr();
         quote! {
-            pub struct #provider_type;
+            #vis struct #provider_type;
 
             #asyn_trait_attr
             impl portaldi::AsyncDIProvider for #provider_type {
-                type Output = dyn #provide_target_ident #provide_target_generics;
+                type Output = #dyn_keyword #provide_target_ident #provide_target_generics;
                 async fn di_on(container: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
                     #ident::di_on(container).await
                 }
@@ -434,10 +462,10 @@ fn build_provider(
         }
     } else {
         quote! {
-            pub struct #provider_type;
+            #vis struct #provider_type;
 
             impl portaldi::DIProvider for #provider_type {
-                type Output = dyn #provide_target_ident #provide_target_generics;
+                type Output = #dyn_keyword #provide_target_ident #provide_target_generics;
                 fn di_on(container: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
                     #ident::di_on(container)
                 }
@@ -461,7 +489,7 @@ fn build_provider_by_env(ident: &Ident, is_async: bool) -> proc_macro2::TokenStr
             ident: quote::format_ident!("{}", &cap[1]),
             generics: syn::parse2::<Generics>(quote! {}).unwrap(),
         };
-        build_provider(&ident, &provide_target, is_async)
+        build_provider(&ident, &provide_target, is_async, true, None)
     } else {
         quote! {}
     }
@@ -472,7 +500,7 @@ fn build_portal(
     field_dis: Vec<FieldDI>,
     is_totally_async: bool,
 ) -> proc_macro2::TokenStream {
-    let to_var_name = |s: &syn::Ident| format_ident!("__di_{}", &s);
+    let to_var_name = |s: &syn::Ident| format_ident!("__di{}", &s);
     let di_var_quotes = if cfg!(feature = "futures-join") {
         let (async_field_dis, sync_field_dis): (Vec<_>, Vec<_>) =
             field_dis.iter().partition(|f| f.is_async);
@@ -556,43 +584,23 @@ fn build_portal(
     }
 }
 
-fn build_field_di(
-    f: &syn::Field,
-    inject_path: Option<&Path>,
-    with_provider: bool,
-) -> proc_macro2::TokenStream {
-    let di_type =
-        get_di_type(&f.ty).expect(format!("{:?} is not DI type", &f.ident.as_ref()).as_str());
+fn build_field_di(f: &syn::Field, inject_path: Option<&Path>) -> proc_macro2::TokenStream {
     inject_path.map_or_else(
-        || match di_type {
-            DIType::Trait {
+        || {
+            let DIType {
                 type_ident: di_type,
                 type_params,
-            } => {
-                let type_params_str = type_params
-                    .iter()
-                    .map(|p| p.to_string())
-                    .collect::<Vec<_>>()
-                    .concat();
-                let di_provider_type =
-                    quote::format_ident!("{}{}Provider", di_type, type_params_str);
-                quote! {
-                    #di_provider_type::di_on(container)
-                }
-            }
-            DIType::Concrete {
-                path: di_concrete_type,
-            } => {
-                let di_type = if with_provider {
-                    let concrete_type_ident = &di_concrete_type.segments.last().unwrap().ident;
-                    let di_provider_type = format_ident!("{}Provider", concrete_type_ident);
-                    quote! { #di_provider_type }
-                } else {
-                    quote! { #di_concrete_type }
-                };
-                quote! {
-                    #di_type::di_on(container)
-                }
+            } = get_di_type(&f.ty)
+                .expect(format!("{:?} is not DI type", &f.ident.as_ref()).as_str());
+
+            let type_params_str = type_params
+                .iter()
+                .map(|p| p.to_string())
+                .collect::<Vec<_>>()
+                .concat();
+            let di_provider_type = quote::format_ident!("{}{}Provider", di_type, type_params_str);
+            quote! {
+                #di_provider_type::di_on(container)
             }
         },
         |path| {
@@ -607,7 +615,6 @@ fn build_field_di(
 enum InjectAttrPart {
     Path(Path),
     Async,
-    WithProvider,
 }
 
 impl Parse for InjectAttrPart {
@@ -615,23 +622,15 @@ impl Parse for InjectAttrPart {
         Ok(if input.peek(Token![async]) {
             input.parse::<Token![async]>()?;
             InjectAttrPart::Async
-        } else if input.peek(kw::with_provider) {
-            input.parse::<kw::with_provider>()?;
-            InjectAttrPart::WithProvider
         } else {
             InjectAttrPart::Path(input.parse()?)
         })
     }
 }
 
-mod kw {
-    syn::custom_keyword!(with_provider);
-}
-
 struct InjectAttr {
     path: Option<Path>,
     is_async: bool,
-    with_provider: bool,
 }
 
 fn parse_inject_attr(attrs: &Vec<Attribute>) -> Option<InjectAttr> {
@@ -642,37 +641,38 @@ fn parse_inject_attr(attrs: &Vec<Attribute>) -> Option<InjectAttr> {
                 .unwrap();
 
             let is_async = args.iter().any(|arg| arg == &InjectAttrPart::Async);
-            let with_provider = args.iter().any(|arg| arg == &InjectAttrPart::WithProvider);
             let path = args.iter().find_map(|arg| match arg {
                 InjectAttrPart::Path(p) => Some(p.clone()),
                 _ => None,
             });
 
-            Some(InjectAttr {
-                path,
-                is_async,
-                with_provider,
-            })
+            Some(InjectAttr { path, is_async })
         }
         _ => None,
     })
 }
 
 #[derive(Debug)]
-struct ProviderArgs {
-    provider_target: Option<ProvideTarget>,
+enum ProviderArgs {
+    SelfProvider,
+    TargetProvider(ProvideTarget),
+    EnvProvider,
 }
 
 impl Parse for ProviderArgs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident_: Option<Ident> = input.parse()?;
-        let provider_target = if let Some(ident) = ident_ {
-            let generics: Generics = input.parse()?;
-            Some(ProvideTarget { ident, generics })
+        Ok(if input.peek(Token![self]) {
+            let _: Token![self] = input.parse()?;
+            ProviderArgs::SelfProvider
         } else {
-            None
-        };
-        Ok(ProviderArgs { provider_target })
+            let ident_: Option<Ident> = input.parse()?;
+            if let Some(ident) = ident_ {
+                let generics: Generics = input.parse()?;
+                ProviderArgs::TargetProvider(ProvideTarget { ident, generics })
+            } else {
+                ProviderArgs::EnvProvider
+            }
+        })
     }
 }
 

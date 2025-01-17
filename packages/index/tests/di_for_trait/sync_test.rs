@@ -96,7 +96,6 @@ mod piyo {
     impl Piyo3<String, bool> for Piyo3Test {}
 
     #[portaldi::provider(Piyo3<String, bool>)]
-    #[async_trait]
     impl DIPortal for Piyo3Test {
         fn create_for_di(_container: &DIContainer) -> Self {
             Piyo3Test {}
