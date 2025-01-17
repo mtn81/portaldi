@@ -192,7 +192,7 @@ checksum = "e0a7ae3ac2f1173085d398531c705756c94a4c56843785df85a60c1a0afac116"
 
 [[package]]
 name = "portaldi"
-version = "0.2.14"
+version = "0.2.16"
 dependencies = [
  "async-trait",
  "portaldi-core",
@@ -202,7 +202,7 @@ dependencies = [
 
 [[package]]
 name = "portaldi-core"
-version = "0.2.14"
+version = "0.2.16"
 dependencies = [
  "async-trait",
  "once_cell",
@@ -211,7 +211,7 @@ dependencies = [
 
 [[package]]
 name = "portaldi-macros"
-version = "0.2.14"
+version = "0.2.16"
 dependencies = [
  "darling",
  "once_cell",
