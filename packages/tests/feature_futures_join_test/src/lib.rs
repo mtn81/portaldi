@@ -20,6 +20,8 @@ pub struct Hoge3 {
 
 #[derive(Debug)]
 pub struct Foo {}
+
+#[provider(Self)]
 #[async_trait::async_trait]
 impl AsyncDIPortal for Foo {
     async fn create_for_di(_c: &DIContainer) -> Self {
@@ -29,6 +31,8 @@ impl AsyncDIPortal for Foo {
 
 #[derive(Debug)]
 pub struct Bar {}
+
+#[provider(Self)]
 #[async_trait::async_trait]
 impl AsyncDIPortal for Bar {
     async fn create_for_di(_c: &DIContainer) -> Self {

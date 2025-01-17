@@ -86,7 +86,7 @@
 //!
 //! pub struct Foo { /* other deps */ }
 //!
-//! #[provider(self)]
+//! #[provider(Self)]
 //! impl DIPortal for Foo {
 //!     fn create_for_di(container: &DIContainer) -> Self {
 //!         // custom creation logic
@@ -147,7 +147,7 @@
 //!
 //! pub struct Foo { /* other deps */ }
 //!
-//! #[provider(self)]
+//! #[provider(Self)]
 //! #[async_trait]
 //! impl AsyncDIPortal for Foo {
 //!     async fn create_for_di(container: &DIContainer) -> Self {
@@ -179,7 +179,7 @@
 //!
 //! pub struct Foo { /* other deps */ }
 //!
-//! #[provider(self)]
+//! #[provider(Self)]
 //! #[async_trait]
 //! impl AsyncDIPortal for Foo {
 //!     async fn create_for_di(container: &DIContainer) -> Self {

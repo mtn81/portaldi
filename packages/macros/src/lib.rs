@@ -167,6 +167,17 @@ impl Parse for ProvideTarget {
 /// }
 /// ```
 ///
+/// You can also generate [`DIProvider`] for Self type.
+/// ```ignore
+/// struct Hoge {}
+///
+/// // When you needs manual creation logic, define DIPortal implementation.
+/// #[portaldi::provider(Self)] // HogeProvider will be generated.
+/// impl DIPortal for Hoge {
+///   ...
+/// }
+/// ```
+///
 #[proc_macro_attribute]
 pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item_impl = parse_macro_input!(item as ItemImpl);
@@ -661,8 +672,8 @@ enum ProviderArgs {
 
 impl Parse for ProviderArgs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(if input.peek(Token![self]) {
-            let _: Token![self] = input.parse()?;
+        Ok(if input.peek(Token![Self]) {
+            let _: Token![Self] = input.parse()?;
             ProviderArgs::SelfProvider
         } else {
             let ident_: Option<Ident> = input.parse()?;

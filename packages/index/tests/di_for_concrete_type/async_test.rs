@@ -55,7 +55,7 @@ pub struct AYah2<A, B> {
 }
 
 // implements manually & self provider attribute
-#[provider(self)]
+#[provider(Self)]
 #[async_trait]
 impl AsyncDIPortal for AYah2<String, u8> {
     async fn create_for_di(_container: &portaldi::DIContainer) -> Self {

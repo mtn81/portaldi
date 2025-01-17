@@ -76,7 +76,7 @@ pub struct Yah3<A, B> {
 }
 
 // implements manually & self provider attribute
-#[provider(self)]
+#[provider(Self)]
 impl DIPortal for Yah3<String, u8> {
     fn create_for_di(_container: &portaldi::DIContainer) -> Self {
         Yah3 {
