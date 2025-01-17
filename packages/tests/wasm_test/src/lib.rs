@@ -19,6 +19,7 @@ pub struct AsyncHoge {
 #[derive(Debug)]
 pub struct AsyncFoo {}
 
+#[provider(Self)]
 #[async_trait(?Send)]
 impl AsyncDIPortal for AsyncFoo {
     async fn create_for_di(_container: &portaldi::DIContainer) -> Self {

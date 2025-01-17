@@ -26,11 +26,11 @@
 //!
 //! #[derive(DIPortal)]
 //! struct Hoge {
-//!   foo: DI<Foo>,
+//!   foo: DI<Foo>, // FooProvider must be in this scope
 //!   // other deps
 //! }
 //!
-//! #[derive(DIPortal)]
+//! #[derive(DIPortal)]  // DIPortal implementation and FooProvider are generated.
 //! struct Foo { /* other deps */ }
 //!
 //! // Use component
@@ -80,12 +80,13 @@
 //!
 //! #[derive(DIPortal)]
 //! struct Hoge {
-//!   foo: DI<Foo>,
+//!   foo: DI<Foo>, // FooProvider must be in this scope
 //!   // other deps
 //! }
 //!
-//! struct Foo { /* other deps */ }
+//! pub struct Foo { /* other deps */ }
 //!
+//! #[provider(Self)]
 //! impl DIPortal for Foo {
 //!     fn create_for_di(container: &DIContainer) -> Self {
 //!         // custom creation logic
@@ -106,7 +107,7 @@
 //!
 //! #[derive(DIPortal)]
 //! struct Hoge {
-//!   foo: DI<dyn FooI>,
+//!   foo: DI<dyn FooI>, // FooIProvider must be in this scope
 //!   // other deps
 //! }
 //!
@@ -140,12 +141,13 @@
 //! #[derive(DIPortal)]
 //! struct Hoge {
 //!   #[inject(async)]
-//!   foo: DI<Foo>,
+//!   foo: DI<Foo>, // FooProvider must be in this scope
 //!   // other deps
 //! }
 //!
-//! struct Foo { /* other deps */ }
+//! pub struct Foo { /* other deps */ }
 //!
+//! #[provider(Self)]
 //! #[async_trait]
 //! impl AsyncDIPortal for Foo {
 //!     async fn create_for_di(container: &DIContainer) -> Self {
@@ -175,8 +177,9 @@
 //!   // other deps
 //! }
 //!
-//! struct Foo { /* other deps */ }
+//! pub struct Foo { /* other deps */ }
 //!
+//! #[provider(Self)]
 //! #[async_trait]
 //! impl AsyncDIPortal for Foo {
 //!     async fn create_for_di(container: &DIContainer) -> Self {
