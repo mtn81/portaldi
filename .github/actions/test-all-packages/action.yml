@@ -31,7 +31,9 @@ runs:
     - name: Run [wasm_test] tests
       shell: bash
       run: |
+        rustup target add wasm32-wasip1
         cargo install cargo-wasi
         cd packages/tests/wasm_test/
         cargo clean
-        cargo wasi test --verbose -- --nocapture
+        cargo test --no-run --target wasm32-wasip1
+        wasmtime target/wasm32-wasip1/debug/deps/*.wasm

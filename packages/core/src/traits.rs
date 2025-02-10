@@ -8,14 +8,14 @@ use crate::types::DI;
 
 /// Represent DI target type.
 /// It requires thread safety.
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
 pub trait DITarget: 'static {}
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
 pub trait DITarget: Send + Sync + 'static {}
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
 impl<T: 'static> DITarget for T {}
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
 impl<T: Send + Sync + 'static> DITarget for T {}
 
 /// Add `di` methods for DI target types.
@@ -29,14 +29,14 @@ pub trait DIPortal {
     }
 
     /// DI on the global container.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
     fn di() -> DI<Self>
     where
         Self: Sized + DITarget,
     {
         Self::di_on(&INSTANCE)
     }
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
     fn di() -> DI<Self>
     where
         Self: Sized + DITarget,
@@ -49,8 +49,11 @@ pub trait DIPortal {
 }
 
 /// Add `di` methods for DI target types that needs async creation.
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(all(target_arch = "wasm32", not(feature = "multi-thread")), async_trait(?Send))]
+#[cfg_attr(
+    any(not(target_arch = "wasm32"), feature = "multi-thread"),
+    async_trait
+)]
 pub trait AsyncDIPortal {
     /// DI on a container.
     async fn di_on(container: &DIContainer) -> DI<Self>
@@ -63,14 +66,14 @@ pub trait AsyncDIPortal {
     }
 
     /// DI on the global container.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
     async fn di() -> DI<Self>
     where
         Self: Sized + DITarget,
     {
         Self::di_on(&INSTANCE).await
     }
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
     async fn di() -> DI<Self>
     where
         Self: Sized + DITarget,
@@ -91,19 +94,22 @@ pub trait DIProvider {
     fn di_on(container: &DIContainer) -> DI<Self::Output>;
 
     /// DI on the global container.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
     fn di() -> DI<Self::Output> {
         Self::di_on(&INSTANCE)
     }
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
     fn di() -> DI<Self::Output> {
         Self::di_on(INSTANCE.with(|i| i.clone()).as_ref())
     }
 }
 
 /// Provides component instance for trait DI types that needs async creation.
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(all(target_arch = "wasm32", not(feature = "multi-thread")), async_trait(?Send))]
+#[cfg_attr(
+    any(not(target_arch = "wasm32"), feature = "multi-thread"),
+    async_trait
+)]
 pub trait AsyncDIProvider {
     /// Target trait type.
     type Output: ?Sized;
@@ -112,11 +118,11 @@ pub trait AsyncDIProvider {
     async fn di_on(container: &DIContainer) -> DI<Self::Output>;
 
     /// DI on the global container.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
     async fn di() -> DI<Self::Output> {
         Self::di_on(&INSTANCE).await
     }
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
     async fn di() -> DI<Self::Output> {
         Self::di_on(INSTANCE.with(|i| i.clone()).as_ref()).await
     }

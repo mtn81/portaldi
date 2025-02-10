@@ -16,3 +16,4 @@ tokio = { version = "1", features = ["full"] }
 
 [features]
 default = []
+multi-thread = []

@@ -3,18 +3,18 @@
 use crate::{traits::DITarget, types::DI};
 use std::{any::Any, collections::HashMap, future::Future};
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
 use std::cell::RefCell;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
 use std::sync::RwLock;
 
 /// DI container holds component refs.
 #[derive(Debug)]
 pub struct DIContainer {
     /// Hold components by its type name (FQTN).
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
     components: RefCell<HashMap<String, DI<dyn Any>>>,
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
     components: RwLock<HashMap<String, DI<dyn Any + Send + Sync>>>,
 }
 
@@ -22,18 +22,18 @@ impl DIContainer {
     /// Create new instance.
     pub fn new() -> DIContainer {
         DIContainer {
-            #[cfg(target_arch = "wasm32")]
+            #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
             components: RefCell::new(HashMap::new()),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
             components: RwLock::new(HashMap::new()),
         }
     }
 
     /// Get a component by type.
     pub fn get<T: DITarget>(&self) -> Option<DI<T>> {
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
         let comps = self.components.borrow();
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
         let comps = self.components.read().unwrap();
         comps
             .get(std::any::type_name::<T>())
@@ -42,9 +42,9 @@ impl DIContainer {
 
     /// Put a component into the container.
     pub fn put_if_absent<T: DITarget>(&self, c: &DI<T>) -> DI<T> {
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
         let mut components = self.components.borrow_mut();
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
         let mut components = self.components.write().unwrap();
         let key = std::any::type_name::<T>();
         let value = components

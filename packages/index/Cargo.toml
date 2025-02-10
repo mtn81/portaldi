@@ -20,3 +20,4 @@ tokio = { version = "1", features = ["full"] }
 [features]
 default = []
 futures-join = ["portaldi-macros/futures-join"]
+multi-thread = ["portaldi-core/multi-thread", "portaldi-macros/multi-thread"]
