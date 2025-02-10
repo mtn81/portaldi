@@ -32,7 +32,6 @@ runs:
       shell: bash
       run: |
         rustup target add wasm32-wasip1
-        cargo install cargo-wasi
         cd packages/tests/wasm_test/
         cargo clean
         cargo test --no-run --target wasm32-wasip1
