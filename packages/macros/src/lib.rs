@@ -9,7 +9,7 @@ use syn::{
     punctuated::Punctuated,
     token::Comma,
     Attribute, Data, DeriveInput, GenericArgument, Ident, ImplItem, ItemImpl, Meta, Path,
-    PathArguments, Token, Type, TypeParamBound, TypePath, Visibility,
+    PathArguments, Token, Type, TypeParamBound, TypePath, TypeTuple, Visibility,
 };
 
 /// Generate a [`DIPortal`] and [`DIProvider`] or [`AsyncDIPortal`] and [`AsyncDIProvider`] implementation.
@@ -402,7 +402,7 @@ fn attr_of<'a>(attrs: &'a Vec<Attribute>, name: &str) -> Option<&'a Attribute> {
 
 struct DIType<'a> {
     type_ident: &'a Ident,
-    type_params: Vec<&'a Ident>,
+    type_params: Vec<Ident>,
 }
 
 fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
@@ -433,7 +433,12 @@ fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
                         .iter()
                         .flat_map(|arg| match arg {
                             GenericArgument::Type(Type::Path(p)) => {
-                                p.path.segments.last().map(|s| &s.ident)
+                                p.path.segments.last().map(|s| s.ident.clone())
+                            }
+                            GenericArgument::Type(Type::Tuple(TypeTuple { elems, .. }))
+                                if elems.is_empty() =>
+                            {
+                                Some(syn::parse2::<Ident>(quote!(Unit)).unwrap())
                             }
                             _ => None,
                         })
@@ -712,6 +717,7 @@ fn type_params_str(generics: &Generics_) -> String {
         .iter()
         .flat_map(|p| match p {
             Type::Path(TypePath { path, .. }) => Some(path.to_token_stream().to_string()),
+            Type::Tuple(TypeTuple { elems, .. }) if elems.is_empty() => Some("Unit".to_string()),
             _ => None,
         })
         .collect::<Vec<_>>()

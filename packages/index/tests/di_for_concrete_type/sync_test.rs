@@ -4,7 +4,9 @@ use crate::common::*;
 
 #[test]
 fn test_di() {
-    assert!(Hoge::di() == Hoge::di())
+    assert!(Hoge::di() == Hoge::di());
+
+    Yah3StringUnitProvider::di();
 }
 
 #[derive(DIPortal)]

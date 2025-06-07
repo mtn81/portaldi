@@ -5,6 +5,8 @@ fn test_di() {
     let hoge = Hoge::di();
     assert!(ptr_eq(hoge.foo1.as_ref(), hoge.foo2.as_ref()));
     assert!(!ptr_eq(hoge.bar1.as_ref(), hoge.bar2.as_ref()));
+
+    Piyo3StringUnitProvider::di();
 }
 
 use bar::*;
