@@ -41,3 +41,4 @@ jobs:
       with:
         # dry-run: true
         registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        ignore-unpublished-changes: true
