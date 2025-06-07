@@ -31,6 +31,8 @@ struct Hoge {
     _piyo2: DI<dyn Piyo2<String, bool>>,
     // di for a trait with generics
     _piyo3: DI<dyn Piyo3<String, bool>>,
+    // di for a trait with generics that contains ()
+    _piyo3_unit: DI<dyn Piyo3<String, ()>>,
 }
 
 mod foo {
@@ -94,6 +96,7 @@ mod piyo {
 
     struct Piyo3Test {}
     impl Piyo3<String, bool> for Piyo3Test {}
+    impl Piyo3<String, ()> for Piyo3Test {}
 
     #[portaldi::provider(Piyo3<String, bool>)]
     impl DIPortal for Piyo3Test {
@@ -101,4 +104,6 @@ mod piyo {
             Piyo3Test {}
         }
     }
+
+    di_provider!(dyn Piyo3<String, ()>, |_| { Piyo3Test {} });
 }

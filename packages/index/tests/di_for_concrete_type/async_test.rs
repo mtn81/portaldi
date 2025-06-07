@@ -18,6 +18,8 @@ struct AHoge {
     yah: DI<AYah>,
     #[inject(async)]
     yah2: DI<AYah2<String, u8>>,
+    #[inject(async)]
+    yah2_unit: DI<AYah2<String, ()>>, // with unit type
 }
 
 #[derive(DIPortal, PartialEq)]
@@ -65,3 +67,11 @@ impl AsyncDIPortal for AYah2<String, u8> {
         }
     }
 }
+
+// with unit type
+async_di_provider!(AYah2<String, ()>, |_c| async {
+    AYah2 {
+        a: PhantomData,
+        b: PhantomData,
+    }
+});

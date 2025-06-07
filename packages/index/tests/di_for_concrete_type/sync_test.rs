@@ -16,6 +16,7 @@ struct Hoge {
     baz: DI<Baz>,
     yah: DI<Yah>,
     _yah3: DI<Yah3<String, u8>>,
+    _yah3_unit: DI<Yah3<String, ()>>, // with unit type
 }
 
 impl PartialEq for Hoge {
@@ -85,3 +86,6 @@ impl DIPortal for Yah3<String, u8> {
         }
     }
 }
+
+// with unit type
+di_provider!(Yah3<String, ()>, |_c| { Yah3 { a: PhantomData::<String>, b: PhantomData::<()>} });

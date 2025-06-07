@@ -1,14 +1,15 @@
 //! proc-macros for generate trait implementations.
 
 use proc_macro::TokenStream;
-use quote::{format_ident, quote};
+use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{
     parse::{Parse, ParseStream},
     parse_macro_input, parse_quote,
     punctuated::Punctuated,
-    Attribute, Data, DeriveInput, GenericArgument, GenericParam, Generics, Ident, ImplItem,
-    ItemImpl, Meta, Path, PathArguments, Token, Type, TypeParam, TypeParamBound, Visibility,
+    token::Comma,
+    Attribute, Data, DeriveInput, GenericArgument, Ident, ImplItem, ItemImpl, Meta, Path,
+    PathArguments, Token, Type, TypeParamBound, TypePath, Visibility,
 };
 
 /// Generate a [`DIPortal`] and [`DIProvider`] or [`AsyncDIPortal`] and [`AsyncDIProvider`] implementation.
@@ -101,7 +102,15 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
                 &ident,
                 &ProvideTarget {
                     ident: ident.clone(),
-                    generics: generics.clone(),
+                    generics: Generics_ {
+                        lt: generics.lt_token,
+                        params: generics
+                            .params
+                            .iter()
+                            .map(|p| syn::parse2::<Type>(quote!(#p)).unwrap())
+                            .collect(),
+                        gt: generics.gt_token,
+                    },
                 },
                 is_totally_async,
                 false,
@@ -127,7 +136,7 @@ pub fn derive_di_portal(input: TokenStream) -> TokenStream {
 #[derive(Debug)]
 struct ProvideTarget {
     ident: Ident,
-    generics: Generics,
+    generics: Generics_,
 }
 
 impl Parse for ProvideTarget {
@@ -352,7 +361,7 @@ struct FieldDI {
 struct DefDiProviderInput {
     kw_dyn: Option<Token![dyn]>,
     target_ident: syn::Ident,
-    generics: syn::Generics,
+    generics: Generics_,
     _comma: Token![,],
     create_fn: syn::ExprClosure,
 }
@@ -364,7 +373,11 @@ impl Parse for DefDiProviderInput {
             None
         };
         let target_ident = input.parse()?;
+
+        println!("[generics check] 1");
         let generics = input.parse()?;
+        println!("[generics check] 2");
+
         let _comma = input.parse()?;
         let create_fn = input.parse()?;
 
@@ -504,7 +517,7 @@ fn build_provider_by_env(ident: &Ident, is_async: bool) -> proc_macro2::TokenStr
     if let Some(cap) = provider_target_cap {
         let provide_target = ProvideTarget {
             ident: quote::format_ident!("{}", &cap[1]),
-            generics: syn::parse2::<Generics>(quote! {}).unwrap(),
+            generics: Generics_::default(),
         };
         build_provider(&ident, &provide_target, is_async, true, None)
     } else {
@@ -684,7 +697,7 @@ impl Parse for ProviderArgs {
         } else {
             let ident_: Option<Ident> = input.parse()?;
             if let Some(ident) = ident_ {
-                let generics: Generics = input.parse()?;
+                let generics = input.parse()?;
                 ProviderArgs::TargetProvider(ProvideTarget { ident, generics })
             } else {
                 ProviderArgs::EnvProvider
@@ -693,14 +706,62 @@ impl Parse for ProviderArgs {
     }
 }
 
-fn type_params_str(generics: &Generics) -> String {
+fn type_params_str(generics: &Generics_) -> String {
     generics
         .params
         .iter()
         .flat_map(|p| match p {
-            GenericParam::Type(TypeParam { ident, .. }) => Some(ident.to_string()),
+            Type::Path(TypePath { path, .. }) => Some(path.to_token_stream().to_string()),
             _ => None,
         })
         .collect::<Vec<_>>()
         .concat()
+}
+
+// syn::Generics では unit を解決できなかったので自前で実装
+#[derive(Debug, Default)]
+struct Generics_ {
+    lt: Option<Token![<]>,
+    params: Punctuated<Type, Comma>,
+    gt: Option<Token![>]>,
+}
+
+impl Parse for Generics_ {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(if input.peek(Token![<]) {
+            let lt: Token![<] = input.parse()?;
+            let mut params: Punctuated<Type, Comma> = Punctuated::new();
+            let gt: Token![>];
+            loop {
+                let t: Type = input.parse()?;
+                params.push(t);
+                if input.peek(Comma) {
+                    let _: Comma = input.parse()?;
+                }
+                if input.peek(Token![>]) {
+                    gt = input.parse()?;
+                    break;
+                }
+            }
+            Self {
+                lt: Some(lt),
+                params,
+                gt: Some(gt),
+            }
+        } else {
+            Self {
+                lt: None,
+                params: Punctuated::new(),
+                gt: None,
+            }
+        })
+    }
+}
+
+impl ToTokens for Generics_ {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        self.lt.to_tokens(tokens);
+        self.params.to_tokens(tokens);
+        self.gt.to_tokens(tokens);
+    }
 }
