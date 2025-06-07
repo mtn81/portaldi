@@ -30,6 +30,8 @@ struct Hoge {
     _piyo: DI<dyn Piyo<String, bool>>,
     #[inject(async)]
     _piyo2: DI<dyn Piyo2<String, bool>>,
+    #[inject(async)]
+    _piyo2_unit: DI<dyn Piyo2<String, ()>>,
 }
 
 mod foo {
@@ -99,6 +101,7 @@ mod piyo {
 
     struct Piyo2Test {}
     impl Piyo2<String, bool> for Piyo2Test {}
+    impl Piyo2<String, ()> for Piyo2Test {}
 
     #[portaldi::provider(Piyo2<String, bool>)]
     #[async_trait]
@@ -107,4 +110,6 @@ mod piyo {
             Piyo2Test {}
         }
     }
+
+    async_di_provider!(dyn Piyo2<String, ()>, |_| async { Piyo2Test {} });
 }
