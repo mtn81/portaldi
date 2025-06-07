@@ -29,7 +29,10 @@ jobs:
         sed -i -e "s/^version = .*#tag:release-version$/version = \"$version\" #tag:release-version/g" ./Cargo.toml
         echo "Debug: Cargo.toml"
         cat ./Cargo.toml
-
+    - uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: Automated version update on release
+        branch: main
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
@@ -38,8 +41,3 @@ jobs:
       with:
         # dry-run: true
         registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-    - uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: Automated version update on release
-        branch: main
