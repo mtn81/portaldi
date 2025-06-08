@@ -373,11 +373,7 @@ impl Parse for DefDiProviderInput {
             None
         };
         let target_ident = input.parse()?;
-
-        println!("[generics check] 1");
         let generics = input.parse()?;
-        println!("[generics check] 2");
-
         let _comma = input.parse()?;
         let create_fn = input.parse()?;
 
