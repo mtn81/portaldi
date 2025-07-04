@@ -4,7 +4,11 @@ use crate::common::*;
 
 #[tokio::test]
 async fn test_di() {
-    assert!(AHoge::di().await == AHoge::di().await)
+    assert!(AHoge::di().await == AHoge::di().await);
+
+    di![AYah2<String, ()>].await;
+    let c = &DIContainer::new();
+    di![AYah2<String, ()> on c].await;
 }
 
 #[derive(DIPortal, PartialEq)]

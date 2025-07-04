@@ -7,6 +7,10 @@ fn test_di() {
     assert!(Hoge::di() == Hoge::di());
 
     Yah3StringUnitProvider::di();
+    di![Yah3<String, ()>];
+
+    let c = &DIContainer::new();
+    di![Yah3<String, ()> on c];
 }
 
 #[derive(DIPortal)]

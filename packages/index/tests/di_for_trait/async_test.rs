@@ -4,6 +4,10 @@ use crate::common::*;
 async fn test_di() {
     let hoge = Hoge::di().await;
     assert!(!ptr_eq(hoge.foo1.as_ref(), hoge.foo2.as_ref()));
+
+    di![Piyo2<String, ()>].await;
+    let c = &DIContainer::new();
+    di![Piyo2<String, ()> on c].await;
 }
 
 use bar::*;
