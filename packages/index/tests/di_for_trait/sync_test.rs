@@ -7,6 +7,10 @@ fn test_di() {
     assert!(!ptr_eq(hoge.bar1.as_ref(), hoge.bar2.as_ref()));
 
     Piyo3StringUnitProvider::di();
+
+    di![Piyo3<String, ()>];
+    let c = &DIContainer::new();
+    di![Piyo3<String, ()> on c];
 }
 
 use bar::*;
