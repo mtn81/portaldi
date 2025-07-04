@@ -88,7 +88,7 @@ mod baz {
     struct BazTest {}
     impl Baz for BazTest {}
 
-    async_di_provider!(dyn Baz, |_c| async { BazTest {} });
+    def_async_di_provider!(dyn Baz, |_c| async { BazTest {} });
 }
 
 mod piyo {
@@ -99,7 +99,7 @@ mod piyo {
     struct PiyoTest {}
     impl Piyo<String, bool> for PiyoTest {}
 
-    async_di_provider!(dyn Piyo<String, bool>, |_c| async { PiyoTest {} });
+    def_async_di_provider!(dyn Piyo<String, bool>, |_c| async { PiyoTest {} });
 
     pub trait Piyo2<A, B>: DITarget {}
 
@@ -115,5 +115,5 @@ mod piyo {
         }
     }
 
-    async_di_provider!(dyn Piyo2<String, ()>, |_| async { Piyo2Test {} });
+    def_async_di_provider!(dyn Piyo2<String, ()>, |_| async { Piyo2Test {} });
 }

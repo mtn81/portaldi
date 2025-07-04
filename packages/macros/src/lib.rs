@@ -258,23 +258,23 @@ pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// pub struct Hoge {}
 ///
 /// // This macro is useful if you want to define the [`DIProvider`] manually.
-/// di_provider!(Hoge, |c| {
+/// def_di_provider!(Hoge, |c| {
 ///     // some creation logic
 /// });
 ///
 /// // Also you can define provider for a trait.
-/// di_provider!(dyn HogeI, |c| {
+/// def_di_provider!(dyn HogeI, |c| {
 ///     // some creation logic
 /// });
 ///
 /// // Also you can define provider for a trait with generics.
-/// di_provider!(dyn HogeI<A>, |c| {
+/// def_di_provider!(dyn HogeI<A>, |c| {
 ///     // some creation logic
 /// });
 ///
 /// ```
 #[proc_macro]
-pub fn di_provider(input: TokenStream) -> TokenStream {
+pub fn def_di_provider(input: TokenStream) -> TokenStream {
     let DefDiProviderInput {
         kw_dyn,
         target_ident,
@@ -306,23 +306,23 @@ pub fn di_provider(input: TokenStream) -> TokenStream {
 /// pub struct Hoge {}
 ///
 /// // This macro is useful if you want to define a [`AsyncDIProvider`] manually.
-/// async_di_provider!(Hoge, |c| async {
+/// def_async_di_provider!(Hoge, |c| async {
 ///     // some asynchronous creation logic
 /// });
 ///
 /// // Also you can define provider for a trait.
-/// async_di_provider!(dyn HogeI, |c| {
+/// def_async_di_provider!(dyn HogeI, |c| {
 ///     // some creation logic
 /// });
 ///
 /// // Also you can define provider for a trait with generics.
-/// async_di_provider!(dyn HogeI<A>, |c| {
+/// def_async_di_provider!(dyn HogeI<A>, |c| {
 ///     // some creation logic
 /// });
 ///
 /// ```
 #[proc_macro]
-pub fn async_di_provider(input: TokenStream) -> TokenStream {
+pub fn def_async_di_provider(input: TokenStream) -> TokenStream {
     let DefDiProviderInput {
         kw_dyn,
         target_ident,

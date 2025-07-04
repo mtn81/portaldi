@@ -52,7 +52,7 @@ impl AsyncDIProvider for ABazProvider {
 
 #[derive(PartialEq)]
 pub struct AYah {}
-async_di_provider!(AYah, |_c| async { AYah {} });
+def_async_di_provider!(AYah, |_c| async { AYah {} });
 
 #[derive(PartialEq)]
 pub struct AYah2<A, B> {
@@ -73,7 +73,7 @@ impl AsyncDIPortal for AYah2<String, u8> {
 }
 
 // with unit type
-async_di_provider!(AYah2<String, ()>, |_c| async {
+def_async_di_provider!(AYah2<String, ()>, |_c| async {
     AYah2 {
         a: PhantomData,
         b: PhantomData,
