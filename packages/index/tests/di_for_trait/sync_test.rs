@@ -74,7 +74,7 @@ mod baz {
     struct BazTest {}
     impl Baz for BazTest {}
 
-    di_provider!(dyn Baz, |_c| BazTest {});
+    def_di_provider!(dyn Baz, |_c| BazTest {});
 }
 
 mod piyo {
@@ -85,7 +85,7 @@ mod piyo {
     struct PiyoTest {}
     impl Piyo<String, bool> for PiyoTest {}
 
-    di_provider!(dyn Piyo<String, bool>, |_c| PiyoTest {});
+    def_di_provider!(dyn Piyo<String, bool>, |_c| PiyoTest {});
 
     //
 
@@ -111,5 +111,5 @@ mod piyo {
         }
     }
 
-    di_provider!(dyn Piyo3<String, ()>, |_| { Piyo3Test {} });
+    def_di_provider!(dyn Piyo3<String, ()>, |_| { Piyo3Test {} });
 }

@@ -67,7 +67,7 @@ impl DIProvider for BazProvider {
 pub struct Yah {}
 
 // implements provider manually
-di_provider!(Yah, |_c| { Yah {} });
+def_di_provider!(Yah, |_c| { Yah {} });
 
 pub struct Yah2<A, B> {
     a: PhantomData<A>,
@@ -75,7 +75,7 @@ pub struct Yah2<A, B> {
 }
 
 // implements provider manually
-di_provider!(Yah2<String, bool>, |_c| { Yah2 { a: PhantomData::<String>, b: PhantomData::<bool>} });
+def_di_provider!(Yah2<String, bool>, |_c| { Yah2 { a: PhantomData::<String>, b: PhantomData::<bool>} });
 
 pub struct Yah3<A, B> {
     a: PhantomData<A>,
@@ -94,4 +94,4 @@ impl DIPortal for Yah3<String, u8> {
 }
 
 // with unit type
-di_provider!(Yah3<String, ()>, |_c| { Yah3 { a: PhantomData::<String>, b: PhantomData::<()>} });
+def_di_provider!(Yah3<String, ()>, |_c| { Yah3 { a: PhantomData::<String>, b: PhantomData::<()>} });
