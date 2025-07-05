@@ -29,6 +29,9 @@ struct Hoge {
     // di by manual Provider
     #[inject(async)]
     _baz: DI<dyn Baz>,
+    // di by manual Provider
+    #[inject(async)]
+    _baz_tagged: DI<Tagged<dyn Baz, String>>,
     // di for a trait with generics
     #[inject(async)]
     _piyo: DI<dyn Piyo<String, bool>>,
@@ -89,6 +92,9 @@ mod baz {
     impl Baz for BazTest {}
 
     def_async_di_provider!(dyn Baz, |_c| async { BazTest {} });
+    def_async_di_provider!(Tagged<dyn Baz, String>, |c| async move {
+        Tagged::new(di![Baz on c].await)
+    });
 }
 
 mod piyo {
