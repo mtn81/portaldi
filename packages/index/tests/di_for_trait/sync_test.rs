@@ -78,7 +78,7 @@ mod baz {
 
     def_di_provider!(dyn Baz, |_c| BazTest {});
 
-    def_di_provider!(Tagged<dyn Baz, String>, |_c| Tagged::new(di![Baz on c]));
+    def_di_provider!(Tagged<dyn Baz, String>, |_c| Tagged::wrap(di![Baz on c]));
 }
 
 mod piyo {

@@ -93,7 +93,7 @@ mod baz {
 
     def_async_di_provider!(dyn Baz, |_c| async { BazTest {} });
     def_async_di_provider!(Tagged<dyn Baz, String>, |c| async move {
-        Tagged::new(di![Baz on c].await)
+        Tagged::wrap(di![Baz on c].await)
     });
 }
 
