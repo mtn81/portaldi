@@ -18,19 +18,16 @@ pub struct Tagged<A: ?Sized, T> {
 }
 
 impl<A: ?Sized, T> Tagged<A, T> {
-    pub fn wrap(target: DI<A>) -> Self {
-        Self {
-            target,
-            tag: PhantomData,
-        }
-    }
-
     pub fn new(target: A) -> Self
     where
         A: Sized,
     {
+        Self::wrap(DI::new(target))
+    }
+
+    pub fn wrap(target: DI<A>) -> Self {
         Self {
-            target: DI::new(target),
+            target,
             tag: PhantomData,
         }
     }
