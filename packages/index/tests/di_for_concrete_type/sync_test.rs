@@ -71,7 +71,7 @@ pub struct Yah {}
 def_di_provider!(Yah, |_c| { Yah {} });
 
 def_di_provider!(Tagged<Yah, String>, |c| {
-    Tagged::new(di![Yah on c])
+    Tagged::wrap(di![Yah on c])
 });
 
 pub struct Yah2<A, B> {

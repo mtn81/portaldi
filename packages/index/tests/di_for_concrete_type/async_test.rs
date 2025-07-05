@@ -55,7 +55,7 @@ impl AsyncDIProvider for ABazProvider {
 #[derive(PartialEq)]
 pub struct AYah {}
 def_async_di_provider!(AYah, |_c| async { AYah {} });
-def_async_di_provider!(Tagged<AYah, String>, |c| async move { Tagged::new(di![AYah on c].await) });
+def_async_di_provider!(Tagged<AYah, String>, |c| async move { Tagged::wrap(di![AYah on c].await) });
 
 #[derive(PartialEq)]
 pub struct AYah2<A, B> {

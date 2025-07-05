@@ -18,9 +18,19 @@ pub struct Tagged<A: ?Sized, T> {
 }
 
 impl<A: ?Sized, T> Tagged<A, T> {
-    pub fn new(target: DI<A>) -> Self {
+    pub fn wrap(target: DI<A>) -> Self {
         Self {
             target,
+            tag: PhantomData,
+        }
+    }
+
+    pub fn new(target: A) -> Self
+    where
+        A: Sized,
+    {
+        Self {
+            target: DI::new(target),
             tag: PhantomData,
         }
     }
@@ -51,7 +61,7 @@ mod tests {
             fn hello(&self) {}
         }
 
-        let t: DI<Tagged<Hoge, String>> = DI::new(Tagged::new(DI::new(Hoge {})));
+        let t: DI<Tagged<Hoge, String>> = DI::new(Tagged::new(Hoge {}));
         let _: &DI<Hoge> = t.target();
         let _ = t.hello();
     }
@@ -66,7 +76,7 @@ mod tests {
             fn hello(&self) {}
         }
 
-        let t: DI<Tagged<dyn HogeI, String>> = DI::new(Tagged::new(DI::new(Hoge {})));
+        let t: DI<Tagged<dyn HogeI, String>> = DI::new(Tagged::wrap(DI::new(Hoge {})));
         let _: &DI<dyn HogeI> = t.target();
         let _ = t.hello();
     }
@@ -77,10 +87,10 @@ mod tests {
 
         let c = DIContainer::new();
 
-        let t1: DI<Tagged<Hoge, String>> = DI::new(Tagged::new(DI::new(Hoge {})));
+        let t1: DI<Tagged<Hoge, String>> = DI::new(Tagged::new(Hoge {}));
         c.put_if_absent(&t1);
 
-        let t2: DI<Tagged<Hoge, bool>> = DI::new(Tagged::new(DI::new(Hoge {})));
+        let t2: DI<Tagged<Hoge, bool>> = DI::new(Tagged::new(Hoge {}));
         c.put_if_absent(&t2);
 
         let r1 = c.get::<Tagged<Hoge, String>>().unwrap();
