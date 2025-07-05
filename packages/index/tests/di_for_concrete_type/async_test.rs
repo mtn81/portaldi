@@ -21,6 +21,8 @@ struct AHoge {
     #[inject(async)]
     yah: DI<AYah>,
     #[inject(async)]
+    yah_tagged: DI<Tagged<AYah, String>>,
+    #[inject(async)]
     yah2: DI<AYah2<String, u8>>,
     #[inject(async)]
     yah2_unit: DI<AYah2<String, ()>>, // with unit type
@@ -53,6 +55,7 @@ impl AsyncDIProvider for ABazProvider {
 #[derive(PartialEq)]
 pub struct AYah {}
 def_async_di_provider!(AYah, |_c| async { AYah {} });
+def_async_di_provider!(Tagged<AYah, String>, |c| async move { Tagged::new(di![AYah on c].await) });
 
 #[derive(PartialEq)]
 pub struct AYah2<A, B> {

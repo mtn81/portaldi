@@ -31,6 +31,8 @@ struct Hoge {
     bar2: DI<dyn Bar>,
     // di by manual Provider
     _baz: DI<dyn Baz>,
+    // di by manual Provider
+    _baz_tagged: DI<Tagged<dyn Baz, String>>,
     // di for a trait with generics
     _piyo: DI<dyn Piyo<String, bool>>,
     // di for a trait with generics
@@ -75,6 +77,8 @@ mod baz {
     impl Baz for BazTest {}
 
     def_di_provider!(dyn Baz, |_c| BazTest {});
+
+    def_di_provider!(Tagged<dyn Baz, String>, |_c| Tagged::new(di![Baz on c]));
 }
 
 mod piyo {

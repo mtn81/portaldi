@@ -11,16 +11,16 @@ pub type DI<T> = std::rc::Rc<T>;
 /// Tagged type.
 ///
 /// You can distinct same components by a tag.
-#[derive(Debug)]
-pub struct Tagged<A, T> {
+#[derive(Debug, Clone, PartialEq)]
+pub struct Tagged<A: ?Sized, T> {
     target: DI<A>,
     tag: PhantomData<T>,
 }
 
-impl<A, T> Tagged<A, T> {
-    pub fn new(target: A) -> Self {
+impl<A: ?Sized, T> Tagged<A, T> {
+    pub fn new(target: DI<A>) -> Self {
         Self {
-            target: DI::new(target),
+            target,
             tag: PhantomData,
         }
     }
@@ -30,7 +30,7 @@ impl<A, T> Tagged<A, T> {
     }
 }
 
-impl<A, T> Deref for Tagged<A, T> {
+impl<A: ?Sized, T> Deref for Tagged<A, T> {
     type Target = DI<A>;
 
     fn deref(&self) -> &Self::Target {
@@ -51,8 +51,23 @@ mod tests {
             fn hello(&self) {}
         }
 
-        let t: DI<Tagged<Hoge, String>> = DI::new(Tagged::new(Hoge {}));
+        let t: DI<Tagged<Hoge, String>> = DI::new(Tagged::new(DI::new(Hoge {})));
         let _: &DI<Hoge> = t.target();
+        let _ = t.hello();
+    }
+
+    #[test]
+    fn test_usage_for_trait() {
+        trait HogeI {
+            fn hello(&self);
+        }
+        struct Hoge {}
+        impl HogeI for Hoge {
+            fn hello(&self) {}
+        }
+
+        let t: DI<Tagged<dyn HogeI, String>> = DI::new(Tagged::new(DI::new(Hoge {})));
+        let _: &DI<dyn HogeI> = t.target();
         let _ = t.hello();
     }
 
@@ -62,10 +77,10 @@ mod tests {
 
         let c = DIContainer::new();
 
-        let t1: DI<Tagged<Hoge, String>> = DI::new(Tagged::new(Hoge {}));
+        let t1: DI<Tagged<Hoge, String>> = DI::new(Tagged::new(DI::new(Hoge {})));
         c.put_if_absent(&t1);
 
-        let t2: DI<Tagged<Hoge, bool>> = DI::new(Tagged::new(Hoge {}));
+        let t2: DI<Tagged<Hoge, bool>> = DI::new(Tagged::new(DI::new(Hoge {})));
         c.put_if_absent(&t2);
 
         let r1 = c.get::<Tagged<Hoge, String>>().unwrap();

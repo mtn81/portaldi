@@ -21,6 +21,7 @@ struct Hoge {
     #[inject(BazProvider)]
     baz: DI<Baz>,
     yah: DI<Yah>,
+    _yah_tagged: DI<Tagged<Yah, String>>,
     _yah3: DI<Yah3<String, u8>>,
     _yah3_unit: DI<Yah3<String, ()>>, // with unit type
 }
@@ -39,7 +40,7 @@ impl PartialEq for Hoge {
 }
 
 #[derive(DIPortal)]
-struct Foo {
+pub struct Foo {
     #[inject(Bar)]
     bar: DI<Bar>,
 }
@@ -68,6 +69,10 @@ pub struct Yah {}
 
 // implements provider manually
 def_di_provider!(Yah, |_c| { Yah {} });
+
+def_di_provider!(Tagged<Yah, String>, |c| {
+    Tagged::new(di![Yah on c])
+});
 
 pub struct Yah2<A, B> {
     a: PhantomData<A>,
