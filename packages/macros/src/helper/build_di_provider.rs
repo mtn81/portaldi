@@ -1,13 +1,9 @@
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote, ToTokens};
+use quote::{format_ident, quote};
 use regex::Regex;
 use syn::{
     parse::{Parse, ParseStream},
-    parse2,
-    punctuated::Punctuated,
-    token::Comma,
-    Attribute, Data, DeriveInput, GenericArgument, Ident, Meta, Path, PathArguments, Token, Type,
-    TypeParamBound, TypePath, TypeTuple, Visibility,
+    Ident, Visibility,
 };
 
 use crate::helper::{async_trait_attr, Generics_};
@@ -18,9 +14,9 @@ pub fn build_provider(
     is_async: bool,
     for_trait: bool,
     vis: Option<&Visibility>,
-) -> proc_macro2::TokenStream {
+) -> TokenStream {
     let type_params_str = provide_target.generics.type_params_str();
-    let provider_type = quote::format_ident!("{}{}Provider", provide_target.ident, type_params_str);
+    let provider_type = format_ident!("{}{}Provider", provide_target.ident, type_params_str);
     let provide_target_ident = &provide_target.ident;
     let provide_target_generics = &provide_target.generics;
     let dyn_keyword = if for_trait { Some(quote!(dyn)) } else { None };
@@ -52,7 +48,7 @@ pub fn build_provider(
     }
 }
 
-pub fn build_provider_by_env(ident: &Ident, is_async: bool) -> proc_macro2::TokenStream {
+pub fn build_provider_by_env(ident: &Ident, is_async: bool) -> TokenStream {
     let ident_str = &ident.to_string();
     let provider_target_cap = std::env::var("PORTALDI_PROVIDER_PATTERN")
         .ok()
