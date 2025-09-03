@@ -7,15 +7,10 @@ pub(crate) mod helper;
 derive_di_portal::define!();
 
 use proc_macro::TokenStream;
-use quote::{format_ident, quote, ToTokens};
-use regex::Regex;
+use quote::{format_ident, quote};
 use syn::{
     parse::{Parse, ParseStream},
-    parse_macro_input, parse_quote,
-    punctuated::Punctuated,
-    token::Comma,
-    Attribute, Data, DeriveInput, GenericArgument, Ident, ImplItem, ItemImpl, Meta, Path,
-    PathArguments, Token, Type, TypeParamBound, TypePath, TypeTuple, Visibility,
+    parse_macro_input, parse_quote, Ident, ImplItem, ItemImpl, Path, Token, Type,
 };
 
 use crate::helper::{
@@ -256,10 +251,6 @@ impl Parse for DefDiProviderInput {
     }
 }
 
-fn attr_of<'a>(attrs: &'a Vec<Attribute>, name: &str) -> Option<&'a Attribute> {
-    todo!()
-}
-
 #[derive(PartialEq)]
 enum InjectAttrPart {
     Path(Path),
@@ -275,30 +266,6 @@ impl Parse for InjectAttrPart {
             InjectAttrPart::Path(input.parse()?)
         })
     }
-}
-
-struct InjectAttr {
-    path: Option<Path>,
-    is_async: bool,
-}
-
-fn parse_inject_attr(attrs: &Vec<Attribute>) -> Option<InjectAttr> {
-    attr_of(attrs, "inject").and_then(|attr| match &attr.meta {
-        Meta::List(metas) => {
-            let args = metas
-                .parse_args_with(Punctuated::<InjectAttrPart, Token![,]>::parse_terminated)
-                .unwrap();
-
-            let is_async = args.iter().any(|arg| arg == &InjectAttrPart::Async);
-            let path = args.iter().find_map(|arg| match arg {
-                InjectAttrPart::Path(p) => Some(p.clone()),
-                _ => None,
-            });
-
-            Some(InjectAttr { path, is_async })
-        }
-        _ => None,
-    })
 }
 
 #[derive(Debug)]

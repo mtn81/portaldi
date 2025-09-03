@@ -49,19 +49,17 @@ macro_rules! define {
 pub(crate) use define;
 
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote, ToTokens};
-use regex::Regex;
+use quote::{format_ident, quote};
 use syn::{
     parse::{Parse, ParseStream},
     parse2,
     punctuated::Punctuated,
-    token::Comma,
     Attribute, Data, DeriveInput, GenericArgument, Ident, Meta, Path, PathArguments, Token, Type,
-    TypeParamBound, TypePath, TypeTuple, Visibility,
+    TypeParamBound, TypeTuple,
 };
 
 use crate::helper::{
-    async_trait_attr, build_provider, build_provider_by_env, Generics_, ProvideTarget,
+    async_trait_attr, attr_of, build_provider, build_provider_by_env, Generics_, ProvideTarget,
 };
 
 pub fn exec(input: TokenStream) -> TokenStream {
@@ -344,15 +342,6 @@ fn build_portal(
             }
         }
     }
-}
-
-fn attr_of<'a>(attrs: &'a Vec<Attribute>, name: &str) -> Option<&'a Attribute> {
-    attrs.iter().find(|&a| {
-        a.path()
-            .get_ident()
-            .filter(|i| i.to_string() == name)
-            .is_some()
-    })
 }
 
 #[derive(PartialEq)]
