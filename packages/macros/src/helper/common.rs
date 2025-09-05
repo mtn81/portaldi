@@ -113,3 +113,34 @@ impl Parse for DefDiProviderInput {
         })
     }
 }
+
+#[derive(Debug)]
+pub struct DiInput {
+    pub target_ident: syn::Ident,
+    pub generics: Generics_,
+    pub arg: Option<syn::Expr>,
+}
+
+impl Parse for DiInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let target_ident = input.parse()?;
+        let generics = input.parse()?;
+        let arg = if input.peek(kw::on) {
+            let _: kw::on = input.parse()?;
+            let arg = input.parse()?;
+            Some(arg)
+        } else {
+            None
+        };
+
+        Ok(DiInput {
+            target_ident,
+            generics,
+            arg,
+        })
+    }
+}
+
+pub mod kw {
+    syn::custom_keyword!(on);
+}
