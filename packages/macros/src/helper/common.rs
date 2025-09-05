@@ -74,19 +74,6 @@ impl Generics_ {
     }
 }
 
-pub fn async_trait_attr() -> proc_macro2::TokenStream {
-    if cfg!(feature = "multi-thread") {
-        quote! {
-            #[async_trait::async_trait]
-        }
-    } else {
-        quote! {
-            #[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
-            #[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
-        }
-    }
-}
-
 pub fn attr_of<'a>(attrs: &'a Vec<Attribute>, name: &str) -> Option<&'a Attribute> {
     attrs.iter().find(|&a| {
         a.path()

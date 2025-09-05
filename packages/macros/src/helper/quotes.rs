@@ -6,7 +6,7 @@ use syn::{
     Ident, Visibility,
 };
 
-use crate::helper::{async_trait_attr, Generics_};
+use crate::helper::Generics_;
 
 pub fn build_provider(
     ident: &Ident,
@@ -80,5 +80,18 @@ impl Parse for ProvideTarget {
         let ident = input.parse()?;
         let generics = input.parse()?;
         Ok(Self { ident, generics })
+    }
+}
+
+pub fn async_trait_attr() -> proc_macro2::TokenStream {
+    if cfg!(feature = "multi-thread") {
+        quote! {
+            #[async_trait::async_trait]
+        }
+    } else {
+        quote! {
+            #[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
+            #[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
+        }
     }
 }
