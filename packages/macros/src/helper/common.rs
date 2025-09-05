@@ -1,13 +1,10 @@
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote, ToTokens};
-use regex::Regex;
+use quote::ToTokens;
 use syn::{
     parse::{Parse, ParseStream},
-    parse2,
     punctuated::Punctuated,
     token::Comma,
-    Attribute, Data, DeriveInput, GenericArgument, Ident, Meta, Path, PathArguments, Token, Type,
-    TypeParamBound, TypePath, TypeTuple, Visibility,
+    Ident, Token, Type, TypePath, TypeTuple,
 };
 
 // syn::Generics では unit を解決できなかったので自前で実装
@@ -51,7 +48,7 @@ impl Parse for Generics_ {
 }
 
 impl ToTokens for Generics_ {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         self.lt.to_tokens(tokens);
         self.params.to_tokens(tokens);
         self.gt.to_tokens(tokens);
@@ -72,15 +69,6 @@ impl Generics_ {
             .collect::<Vec<_>>()
             .concat()
     }
-}
-
-pub fn attr_of<'a>(attrs: &'a Vec<Attribute>, name: &str) -> Option<&'a Attribute> {
-    attrs.iter().find(|&a| {
-        a.path()
-            .get_ident()
-            .filter(|i| i.to_string() == name)
-            .is_some()
-    })
 }
 
 #[derive(Debug)]
@@ -115,32 +103,15 @@ impl Parse for DefDiProviderInput {
 }
 
 #[derive(Debug)]
-pub struct DiInput {
-    pub target_ident: syn::Ident,
+pub struct ProvideTarget {
+    pub ident: Ident,
     pub generics: Generics_,
-    pub arg: Option<syn::Expr>,
 }
 
-impl Parse for DiInput {
+impl Parse for ProvideTarget {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let target_ident = input.parse()?;
+        let ident = input.parse()?;
         let generics = input.parse()?;
-        let arg = if input.peek(kw::on) {
-            let _: kw::on = input.parse()?;
-            let arg = input.parse()?;
-            Some(arg)
-        } else {
-            None
-        };
-
-        Ok(DiInput {
-            target_ident,
-            generics,
-            arg,
-        })
+        Ok(Self { ident, generics })
     }
-}
-
-pub mod kw {
-    syn::custom_keyword!(on);
 }

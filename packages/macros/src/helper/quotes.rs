@@ -1,12 +1,9 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use regex::Regex;
-use syn::{
-    parse::{Parse, ParseStream},
-    Ident, Visibility,
-};
+use syn::{Ident, Visibility};
 
-use crate::helper::Generics_;
+use crate::helper::{Generics_, ProvideTarget};
 
 pub fn build_provider(
     ident: &Ident,
@@ -66,20 +63,6 @@ pub fn build_provider_by_env(ident: &Ident, is_async: bool) -> TokenStream {
         build_provider(&ident, &provide_target, is_async, true, None)
     } else {
         quote! {}
-    }
-}
-
-#[derive(Debug)]
-pub struct ProvideTarget {
-    pub ident: Ident,
-    pub generics: Generics_,
-}
-
-impl Parse for ProvideTarget {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident = input.parse()?;
-        let generics = input.parse()?;
-        Ok(Self { ident, generics })
     }
 }
 

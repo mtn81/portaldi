@@ -11,7 +11,7 @@ macro_rules! define {
         #[proc_macro]
         #[allow(non_snake_case)]
         pub fn di(input: TokenStream) -> TokenStream {
-            di_macro::exec(input.into()).into()
+            di::exec(input.into()).into()
         }
     };
 }
@@ -19,9 +19,13 @@ pub(crate) use define;
 
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
-use syn::parse2;
+use syn::{
+    parse::{Parse, ParseStream},
+    parse2,
+};
 
-use crate::helper::DiInput;
+use crate::helper::kw;
+use crate::helper::Generics_;
 
 pub fn exec(input: TokenStream2) -> TokenStream2 {
     let DiInput {
@@ -37,5 +41,32 @@ pub fn exec(input: TokenStream2) -> TokenStream2 {
         quote!(#provider_type_name :: di_on(#arg))
     } else {
         quote!(#provider_type_name :: di())
+    }
+}
+
+#[derive(Debug)]
+pub struct DiInput {
+    pub target_ident: syn::Ident,
+    pub generics: Generics_,
+    pub arg: Option<syn::Expr>,
+}
+
+impl Parse for DiInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let target_ident = input.parse()?;
+        let generics = input.parse()?;
+        let arg = if input.peek(kw::on) {
+            let _: kw::on = input.parse()?;
+            let arg = input.parse()?;
+            Some(arg)
+        } else {
+            None
+        };
+
+        Ok(DiInput {
+            target_ident,
+            generics,
+            arg,
+        })
     }
 }

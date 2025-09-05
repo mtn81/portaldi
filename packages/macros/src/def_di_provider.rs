@@ -23,7 +23,7 @@ macro_rules! define {
         /// ```
         #[proc_macro]
         pub fn def_di_provider(input: TokenStream) -> TokenStream {
-            def_di_provider_sync::exec(input.into()).into()
+            def_di_provider::exec(input.into()).into()
         }
     };
 }
