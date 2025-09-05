@@ -82,3 +82,34 @@ pub fn attr_of<'a>(attrs: &'a Vec<Attribute>, name: &str) -> Option<&'a Attribut
             .is_some()
     })
 }
+
+#[derive(Debug)]
+pub struct DefDiProviderInput {
+    pub kw_dyn: Option<Token![dyn]>,
+    pub target_ident: syn::Ident,
+    pub generics: Generics_,
+    pub _comma: Token![,],
+    pub create_fn: syn::ExprClosure,
+}
+
+impl Parse for DefDiProviderInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let kw_dyn = if input.peek(Token![dyn]) {
+            Some(input.parse()?)
+        } else {
+            None
+        };
+        let target_ident = input.parse()?;
+        let generics = input.parse()?;
+        let _comma = input.parse()?;
+        let create_fn = input.parse()?;
+
+        Ok(DefDiProviderInput {
+            kw_dyn,
+            target_ident,
+            generics,
+            _comma,
+            create_fn,
+        })
+    }
+}

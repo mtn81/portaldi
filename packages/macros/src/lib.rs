@@ -2,11 +2,15 @@
 
 mod derive_di_portal;
 mod provider;
+mod def_di_provider_sync;
+mod def_async_di_provider;
 
 pub(crate) mod helper;
 
 derive_di_portal::define!();
 provider::define!();
+def_di_provider_sync::define!();
+def_async_di_provider::define!();
 
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
@@ -15,136 +19,7 @@ use syn::{
     parse_macro_input, Ident, Token,
 };
 
-use crate::helper::{async_trait_attr, Generics_};
-
-/// Generate a [`DIProvider`] implementation.
-///
-/// ```ignore
-/// pub struct Hoge {}
-///
-/// // This macro is useful if you want to define the [`DIProvider`] manually.
-/// def_di_provider!(Hoge, |c| {
-///     // some creation logic
-/// });
-///
-/// // Also you can define provider for a trait.
-/// def_di_provider!(dyn HogeI, |c| {
-///     // some creation logic
-/// });
-///
-/// // Also you can define provider for a trait with generics.
-/// def_di_provider!(dyn HogeI<A>, |c| {
-///     // some creation logic
-/// });
-///
-/// ```
-#[proc_macro]
-pub fn def_di_provider(input: TokenStream) -> TokenStream {
-    let DefDiProviderInput {
-        kw_dyn,
-        target_ident,
-        generics,
-        create_fn,
-        ..
-    } = parse_macro_input!(input as DefDiProviderInput);
-
-    let ty_params_str = generics.type_params_str();
-    let provider_ident = format_ident!("{}{}Provider", target_ident, ty_params_str);
-
-    let result = quote! {
-        pub struct #provider_ident;
-        impl portaldi::DIProvider for #provider_ident {
-            type Output = #kw_dyn #target_ident #generics;
-
-            fn di_on(c: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
-                c.get_or_init(|| (#create_fn)(c))
-            }
-        }
-    };
-
-    result.into()
-}
-
-/// Generate a [`AsyncDIProvider`] implementation.
-///
-/// ```ignore
-/// pub struct Hoge {}
-///
-/// // This macro is useful if you want to define a [`AsyncDIProvider`] manually.
-/// def_async_di_provider!(Hoge, |c| async {
-///     // some asynchronous creation logic
-/// });
-///
-/// // Also you can define provider for a trait.
-/// def_async_di_provider!(dyn HogeI, |c| {
-///     // some creation logic
-/// });
-///
-/// // Also you can define provider for a trait with generics.
-/// def_async_di_provider!(dyn HogeI<A>, |c| {
-///     // some creation logic
-/// });
-///
-/// ```
-#[proc_macro]
-pub fn def_async_di_provider(input: TokenStream) -> TokenStream {
-    let DefDiProviderInput {
-        kw_dyn,
-        target_ident,
-        generics,
-        create_fn,
-        ..
-    } = parse_macro_input!(input as DefDiProviderInput);
-
-    let ty_params_str = generics.type_params_str();
-    let provider_ident = format_ident!("{}{}Provider", target_ident, ty_params_str);
-
-    let async_trait_attr = async_trait_attr();
-
-    let result = quote! {
-        pub struct #provider_ident;
-
-        #async_trait_attr
-        impl portaldi::AsyncDIProvider for #provider_ident {
-            type Output = #kw_dyn #target_ident #generics;
-
-            async fn di_on(c: &portaldi::DIContainer) -> portaldi::DI<Self::Output> {
-                c.get_or_init_async(|| (#create_fn)(c)).await
-            }
-        }
-    };
-
-    result.into()
-}
-
-struct DefDiProviderInput {
-    kw_dyn: Option<Token![dyn]>,
-    target_ident: syn::Ident,
-    generics: Generics_,
-    _comma: Token![,],
-    create_fn: syn::ExprClosure,
-}
-impl Parse for DefDiProviderInput {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let kw_dyn = if input.peek(Token![dyn]) {
-            Some(input.parse()?)
-        } else {
-            None
-        };
-        let target_ident = input.parse()?;
-        let generics = input.parse()?;
-        let _comma = input.parse()?;
-        let create_fn = input.parse()?;
-
-        Ok(DefDiProviderInput {
-            kw_dyn,
-            target_ident,
-            generics,
-            _comma,
-            create_fn,
-        })
-    }
-}
+use crate::helper::Generics_;
 
 
 
