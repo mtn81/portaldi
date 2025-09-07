@@ -60,7 +60,7 @@ pub fn build_provider_by_env(ident: &Ident, is_async: bool) -> TokenStream {
             ident: quote::format_ident!("{}", &cap[1]),
             generics: Generics_::default(),
         };
-        build_provider(&ident, &provide_target, is_async, true, None)
+        build_provider(ident, &provide_target, is_async, true, None)
     } else {
         quote! {}
     }

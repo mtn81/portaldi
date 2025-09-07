@@ -35,4 +35,4 @@ runs:
         cd packages/tests/wasm_test/
         cargo clean
         cargo test --no-run --target wasm32-wasip1
-        wasmtime target/wasm32-wasip1/debug/deps/*.wasm
+        ls target/wasm32-wasip1/debug/deps/*.wasm | xargs -I {} wasmtime {}

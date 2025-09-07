@@ -87,7 +87,7 @@ pub fn exec(input: TokenStream) -> TokenStream {
                     let is_async = is_always_async
                         || inject_attr.as_ref().map(|a| a.is_async).unwrap_or(false);
                     let inject_path = inject_attr.as_ref().and_then(|a| a.path.as_ref());
-                    let di_expr = build_field_di(&f, inject_path);
+                    let di_expr = build_field_di(f, inject_path);
                     let field_ident = f.ident.as_ref().unwrap().clone();
                     FieldDI {
                         field_ident,
@@ -134,11 +134,9 @@ pub fn exec(input: TokenStream) -> TokenStream {
 
             // println!("check !!!! {:}", result);
 
-            result.into()
+            result
         }
-        _ => syn::Error::new_spanned(&ident, "Must be struct type")
-            .to_compile_error()
-            .into(),
+        _ => syn::Error::new_spanned(&ident, "Must be struct type").to_compile_error(),
     }
 }
 
@@ -147,7 +145,7 @@ struct InjectAttr {
     is_async: bool,
 }
 
-fn parse_inject_attr(attrs: &Vec<Attribute>) -> Option<InjectAttr> {
+fn parse_inject_attr(attrs: &[Attribute]) -> Option<InjectAttr> {
     attr_of(attrs, "inject").and_then(|attr| match &attr.meta {
         Meta::List(metas) => {
             let args = metas
@@ -173,7 +171,7 @@ fn build_field_di(f: &syn::Field, inject_path: Option<&Path>) -> proc_macro2::To
                 type_ident: di_type,
                 type_params,
             } = get_di_type(&f.ty)
-                .expect(format!("{:?} is not DI type", &f.ident.as_ref()).as_str());
+                .unwrap_or_else(|| panic!("{:?} is not DI type", &f.ident.as_ref()));
 
             let type_params_str = type_params
                 .iter()
@@ -246,7 +244,7 @@ fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
             }
         }
     }
-    return None;
+    None
 }
 
 struct FieldDI {
@@ -282,7 +280,7 @@ fn build_portal(
             .iter()
             .map(|f| {
                 let ident = &f.field_ident;
-                let var_name = to_var_name(&ident);
+                let var_name = to_var_name(ident);
                 let expr = &f.di_expr;
                 quote! {
                     let #var_name = #expr;
@@ -298,7 +296,7 @@ fn build_portal(
             .iter()
             .map(|f| {
                 let ident = &f.field_ident;
-                let var_name = to_var_name(&ident);
+                let var_name = to_var_name(ident);
                 let expr = &f.di_expr;
                 if f.is_async {
                     quote! {

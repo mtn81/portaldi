@@ -21,6 +21,7 @@ macro_rules! define {
         /// });
         ///
         /// ```
+        #[proc_macro_error]
         #[proc_macro]
         pub fn def_di_provider(input: TokenStream) -> TokenStream {
             def_di_provider::exec(input.into()).into()
@@ -30,6 +31,7 @@ macro_rules! define {
 pub(crate) use define;
 
 use proc_macro2::TokenStream as TokenStream2;
+use proc_macro_error::abort;
 use quote::{format_ident, quote};
 use syn::parse2;
 
@@ -42,7 +44,13 @@ pub fn exec(input: TokenStream2) -> TokenStream2 {
         generics,
         create_fn,
         ..
-    } = parse2::<DefDiProviderInput>(input).unwrap();
+    } = parse2::<DefDiProviderInput>(input.clone()).unwrap_or_else(move |_| {
+        abort!(
+            &input,
+            "invalid input format";
+            help = "usage: def_di_provider!([dyn] <TargetIdent>[<Generics>], |c| { <create expression> })";
+        );
+    });
 
     let ty_params_str = generics.type_params_str();
     let provider_ident = format_ident!("{}{}Provider", target_ident, ty_params_str);

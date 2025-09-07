@@ -40,6 +40,7 @@ macro_rules! define {
         /// }
         /// ```
         ///
+        #[proc_macro_error]
         #[proc_macro_attribute]
         pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
             provider::exec(attr.into(), item.into()).into()
@@ -49,36 +50,52 @@ macro_rules! define {
 pub(crate) use define;
 
 use proc_macro2::TokenStream as TokenStream2;
+use proc_macro_error::{abort, abort_call_site};
 use quote::quote;
 use syn::{
     parse::{Parse, ParseStream},
-    parse2, parse_quote, Ident, ImplItem, ItemImpl, Token, Type,
+    parse2, parse_quote, Ident, ImplItem, ItemImpl, Token, Type, TypePath,
 };
 
 use crate::helper::{build_provider, build_provider_by_env, ProvideTarget};
 
 pub fn exec(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
-    let item_impl = parse2::<ItemImpl>(item.clone()).unwrap();
-    let args = parse2::<ProviderArgs>(attr).unwrap();
+    let item_impl = parse2::<ItemImpl>(item.clone())
+        .unwrap_or_else(move |_| abort_call_site!("[provider] must be on impl block"));
+
+    let args = parse2::<ProviderArgs>(attr.clone()).unwrap_or_else(move |_| {
+        abort!(
+            attr,
+            "invalid attribute args";
+            help = "must be `Self`, <TargetTrait> or empty (for env)"
+        );
+    });
 
     // dbg!(&item_impl.trait_);
     let is_portal_impl = match &item_impl.trait_ {
         Some((_, p, _)) => p
             .segments
-            .iter()
-            .any(|s| s.ident == "DIPortal" || s.ident == "AsyncDIPortal"),
+            .last()
+            .is_some_and(|s| s.ident == "DIPortal" || s.ident == "AsyncDIPortal"),
         _ => false,
     };
     if !is_portal_impl {
-        panic!("[provider] must be on DIPortal or AsyncDIPortal")
+        abort!(
+            &item_impl,
+            "must be on impl DIPortal or AsyncDIPortal block"
+        )
     }
 
     // dbg!(&item_impl.self_ty);
-    let (ident, path_args) = match *item_impl.self_ty {
-        Type::Path(ref p) => p.path.segments.last().map(|s| (&s.ident, &s.arguments)),
+    let (ident, path_args) = (match *item_impl.self_ty {
+        Type::Path(TypePath { ref path, .. }) => {
+            path.segments.last().map(|s| (&s.ident, &s.arguments))
+        }
         _ => None,
-    }
-    .expect("impl type name not found.");
+    })
+    .unwrap_or_else(|| {
+        abort!(item_impl.self_ty, "self type name not found.");
+    });
 
     let di_method = item_impl
         .items
@@ -92,12 +109,10 @@ pub fn exec(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     let is_async = di_method.sig.asyncness.is_some();
 
     let provider_quote = match args {
-        ProviderArgs::TargetProvider(target) => {
-            build_provider(&ident, &target, is_async, true, None)
-        }
-        ProviderArgs::EnvProvider => build_provider_by_env(&ident, is_async),
-        ProviderArgs::SelfProvider => build_provider(
-            &ident,
+        ProviderArgs::Target(target) => build_provider(ident, &target, is_async, true, None),
+        ProviderArgs::Env => build_provider_by_env(ident, is_async),
+        ProviderArgs::Same => build_provider(
+            ident,
             &ProvideTarget {
                 ident: ident.clone(),
                 generics: parse_quote!(#path_args),
@@ -122,23 +137,23 @@ pub fn exec(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
 #[derive(Debug)]
 enum ProviderArgs {
-    SelfProvider,
-    TargetProvider(ProvideTarget),
-    EnvProvider,
+    Same,
+    Target(ProvideTarget),
+    Env,
 }
 
 impl Parse for ProviderArgs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(if input.peek(Token![Self]) {
             let _: Token![Self] = input.parse()?;
-            ProviderArgs::SelfProvider
+            ProviderArgs::Same
         } else {
             let ident_: Option<Ident> = input.parse()?;
             if let Some(ident) = ident_ {
                 let generics = input.parse()?;
-                ProviderArgs::TargetProvider(ProvideTarget { ident, generics })
+                ProviderArgs::Target(ProvideTarget { ident, generics })
             } else {
-                ProviderArgs::EnvProvider
+                ProviderArgs::Env
             }
         })
     }

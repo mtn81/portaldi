@@ -8,6 +8,7 @@ macro_rules! define {
         /// di![Hoge<String, ()>]   // => HogeStringUnitProvider::di()
         /// di![Hoge on c]          // => HogeProvider::di_on(c)
         /// ```
+        #[proc_macro_error]
         #[proc_macro]
         #[allow(non_snake_case)]
         pub fn di(input: TokenStream) -> TokenStream {
@@ -18,6 +19,7 @@ macro_rules! define {
 pub(crate) use define;
 
 use proc_macro2::TokenStream as TokenStream2;
+use proc_macro_error::abort;
 use quote::{format_ident, quote};
 use syn::{
     parse::{Parse, ParseStream},
@@ -28,11 +30,18 @@ use crate::helper::kw;
 use crate::helper::Generics_;
 
 pub fn exec(input: TokenStream2) -> TokenStream2 {
+    let input = &input;
     let DiInput {
         target_ident,
         generics,
         arg,
-    } = parse2::<DiInput>(input).unwrap();
+    } = parse2::<DiInput>(input.clone()).unwrap_or_else(move |_| {
+        abort!(
+            &input,
+            "invalid input";
+            help = "usage: di![<DiTargetType> | <DiTargetType> on <container variable>]"
+        );
+    });
 
     let type_params_str = generics.type_params_str();
     let provider_type_name = format_ident!("{}{}Provider", target_ident, type_params_str);
