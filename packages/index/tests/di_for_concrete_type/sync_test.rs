@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::common::*;
+use crate::helper::*;
 
 #[test]
 fn test_di() {
