@@ -1,4 +1,4 @@
-//! proc-macros for generate trait implementations.
+//! proc-macros for generating trait implementations.
 
 pub(crate) mod helper;
 
