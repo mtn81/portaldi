@@ -7,12 +7,13 @@ error: [provider] must be on impl block
   = note: this error originates in the attribute macro `provider` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: invalid attribute args
+
+         = help: must be `Self`, <TargetTrait> or empty (for env)
+
  --> tests/compile_fail/cases/use_provider.rs:6:12
   |
 6 | #[provider(1+1)]
   |            ^^^
-  |
-  = help: must be `Self`, <TargetTrait> or empty (for env)
 
 error: must be on impl DIPortal or AsyncDIPortal block
   --> tests/compile_fail/cases/use_provider.rs:12:1

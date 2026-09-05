@@ -1,7 +1,8 @@
 error: invalid input format
+
+         = help: usage: def_di_provider!([dyn] <TargetIdent>[<Generics>], |c| { <create expression> })
+
  --> tests/compile_fail/cases/use_def_di_provider.rs:3:18
   |
 3 | def_di_provider!(Hoge);
   |                  ^^^^
-  |
-  = help: usage: def_di_provider!([dyn] <TargetIdent>[<Generics>], |c| { <create expression> })
