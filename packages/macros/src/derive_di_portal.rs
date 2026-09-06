@@ -192,7 +192,7 @@ fn build_field_di(f: &syn::Field, inject_path: Option<&Path>) -> proc_macro2::To
             } = get_di_type(&f.ty).unwrap_or_else(|| {
                 abort!(
                     f.ty,
-                    "{} has not DI type",
+                    "{} is not DI type",
                     f.ident.as_ref().map(|i| i.to_string()).unwrap_or_default()
                 )
             });
