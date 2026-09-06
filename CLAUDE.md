@@ -43,6 +43,7 @@ packages
 ## 注意事項
 
 - コミットする前に必ず `make check` と `make test-all` を実行する
+- rustのバージョンが上がった場合などに、trybuildのstderrの出力がズレたらTRYBUILD=overwriteで再生成する
 
 ## PRレビュー時の観点
 

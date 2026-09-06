@@ -49,20 +49,22 @@ macro_rules! define {
 }
 pub(crate) use define;
 
-use proc_macro_error::{abort, abort_call_site};
+use proc_macro_error::abort;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{
     Ident, ImplItem, ItemImpl, Token, Type, TypePath,
     parse::{Parse, ParseStream},
     parse_quote, parse2,
+    spanned::Spanned,
 };
 
 use crate::helper::{ProvideTarget, build_provider, build_provider_by_env};
 
 pub fn exec(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
-    let item_impl = parse2::<ItemImpl>(item.clone())
-        .unwrap_or_else(move |_| abort_call_site!("[provider] must be on impl block"));
+    let span = item.span();
+    let item_impl = parse2::<ItemImpl>(item)
+        .unwrap_or_else(|e| abort!(span, format!("[provider] must be on impl block: {e}")));
 
     let args = parse2::<ProviderArgs>(attr.clone()).unwrap_or_else(move |_| {
         abort!(
