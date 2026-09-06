@@ -33,20 +33,21 @@ pub(crate) use define;
 use proc_macro_error::abort;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
-use syn::parse2;
+use syn::{parse2, spanned::Spanned as _};
 
 use crate::helper::{DefDiProviderInput, async_trait_attr};
 
 pub fn exec(input: TokenStream2) -> TokenStream2 {
+    let span = input.span();
     let DefDiProviderInput {
         kw_dyn,
         target_ident,
         generics,
         create_fn,
         ..
-    } = parse2::<DefDiProviderInput>(input.clone()).unwrap_or_else(move |_| {
+    } = parse2::<DefDiProviderInput>(input).unwrap_or_else(move |_| {
         abort!(
-            &input,
+            span,
             "invalid input format";
             help = "usage: def_async_di_provider!([dyn] <TargetIdent>[<Generics>], |c| { <create expression> })";
         );

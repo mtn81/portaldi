@@ -24,20 +24,21 @@ use quote::{format_ident, quote};
 use syn::{
     parse::{Parse, ParseStream},
     parse2,
+    spanned::Spanned,
 };
 
 use crate::helper::Generics_;
 use crate::helper::kw;
 
 pub fn exec(input: TokenStream2) -> TokenStream2 {
-    let input = &input;
+    let span = input.span();
     let DiInput {
         target_ident,
         generics,
         arg,
-    } = parse2::<DiInput>(input.clone()).unwrap_or_else(move |_| {
+    } = parse2::<DiInput>(input).unwrap_or_else(move |_| {
         abort!(
-            &input,
+            span,
             "invalid input";
             help = "usage: di![<DiTargetType> | <DiTargetType> on <container variable>]"
         );
