@@ -5,4 +5,4 @@ error: invalid input
  --> tests/compile_fail/cases/use_di.rs:4:9
   |
 4 |     di![1 + 1];
-  |         ^^^^^
+  |         ^
