@@ -3,10 +3,10 @@ description: ""
 runs:
   using: "composite"
   steps:
-    - name: Use wasmtime 0.21.0
-      uses: mwilliamson/setup-wasmtime-action@v2
+    - name: Setup wasmtime
+      uses: mwilliamson/setup-wasmtime-action@v3
       with:
-        wasmtime-version: "0.21.0"
+        wasmtime-version: "48.0.1"
 
     - name: Format and lint check
       shell: bash
