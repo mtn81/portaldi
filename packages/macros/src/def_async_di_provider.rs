@@ -30,12 +30,12 @@ macro_rules! define {
 }
 pub(crate) use define;
 
-use proc_macro2::TokenStream as TokenStream2;
 use proc_macro_error::abort;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use syn::parse2;
 
-use crate::helper::{async_trait_attr, DefDiProviderInput};
+use crate::helper::{DefDiProviderInput, async_trait_attr};
 
 pub fn exec(input: TokenStream2) -> TokenStream2 {
     let DefDiProviderInput {

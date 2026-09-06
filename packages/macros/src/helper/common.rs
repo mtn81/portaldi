@@ -1,10 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
+    Ident, Token, Type, TypePath, TypeTuple,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     token::Comma,
-    Ident, Token, Type, TypePath, TypeTuple,
 };
 
 // syn::Generics では unit を解決できなかったので自前で実装

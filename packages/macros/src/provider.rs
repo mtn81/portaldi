@@ -49,15 +49,16 @@ macro_rules! define {
 }
 pub(crate) use define;
 
-use proc_macro2::TokenStream as TokenStream2;
 use proc_macro_error::{abort, abort_call_site};
+use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{
+    Ident, ImplItem, ItemImpl, Token, Type, TypePath,
     parse::{Parse, ParseStream},
-    parse2, parse_quote, Ident, ImplItem, ItemImpl, Token, Type, TypePath,
+    parse_quote, parse2,
 };
 
-use crate::helper::{build_provider, build_provider_by_env, ProvideTarget};
+use crate::helper::{ProvideTarget, build_provider, build_provider_by_env};
 
 pub fn exec(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     let item_impl = parse2::<ItemImpl>(item.clone())

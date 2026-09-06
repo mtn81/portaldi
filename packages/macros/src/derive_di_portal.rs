@@ -51,15 +51,15 @@ pub(crate) use define;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
+    Attribute, Data, DeriveInput, GenericArgument, Ident, Meta, Path, PathArguments, Token, Type,
+    TypeParamBound, TypeTuple,
     parse::{Parse, ParseStream},
     parse2,
     punctuated::Punctuated,
-    Attribute, Data, DeriveInput, GenericArgument, Ident, Meta, Path, PathArguments, Token, Type,
-    TypeParamBound, TypeTuple,
 };
 
 use crate::helper::{
-    async_trait_attr, attr_of, build_provider, build_provider_by_env, Generics_, ProvideTarget,
+    Generics_, ProvideTarget, async_trait_attr, attr_of, build_provider, build_provider_by_env,
 };
 
 pub fn exec(input: TokenStream) -> TokenStream {
@@ -171,7 +171,7 @@ fn build_field_di(f: &syn::Field, inject_path: Option<&Path>) -> proc_macro2::To
                 type_ident: di_type,
                 type_params,
             } = get_di_type(&f.ty)
-                .unwrap_or_else(|| panic!("{:?} is not DI type", &f.ident.as_ref()));
+                .unwrap_or_else(|| panic!("{:?} is not DI type", f.ident.as_ref()));
 
             let type_params_str = type_params
                 .iter()

@@ -8,31 +8,10 @@ runs:
       with:
         wasmtime-version: "0.21.0"
 
-    - name: Run [index] tests
+    - name: Format and lint check
       shell: bash
-      run: |
-        cargo clean
-        cargo test --verbose -- --nocapture
+      run: make check
 
-    - name: Run [env_always_async_test] tests
+    - name: Run all tests
       shell: bash
-      run: |
-        cd packages/tests/env_always_async_test/
-        cargo clean
-        cargo test --verbose -- --nocapture
-
-    - name: Run [feature_futures_join_test] tests
-      shell: bash
-      run: |
-        cd packages/tests/feature_futures_join_test/
-        cargo clean
-        cargo test --verbose -- --nocapture
-
-    - name: Run [wasm_test] tests
-      shell: bash
-      run: |
-        rustup target add wasm32-wasip1
-        cd packages/tests/wasm_test/
-        cargo clean
-        cargo test --no-run --target wasm32-wasip1
-        ls target/wasm32-wasip1/debug/deps/*.wasm | xargs -I {} wasmtime {}
+      run: make test-all

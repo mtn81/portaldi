@@ -18,16 +18,16 @@ macro_rules! define {
 }
 pub(crate) use define;
 
-use proc_macro2::TokenStream as TokenStream2;
 use proc_macro_error::abort;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use syn::{
     parse::{Parse, ParseStream},
     parse2,
 };
 
-use crate::helper::kw;
 use crate::helper::Generics_;
+use crate::helper::kw;
 
 pub fn exec(input: TokenStream2) -> TokenStream2 {
     let input = &input;
