@@ -105,7 +105,7 @@ pub fn exec(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             ImplItem::Fn(m) if m.sig.ident == "create_for_di" => Some(m),
             _ => None,
         })
-        .expect("'di' method must be defined.");
+        .unwrap_or_else(|| abort!(item_impl, "'create_for_di' method must be defined."));
 
     let is_async = di_method.sig.asyncness.is_some();
 
