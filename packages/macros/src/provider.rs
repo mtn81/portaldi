@@ -42,8 +42,8 @@ macro_rules! define {
         ///
         #[proc_macro_error]
         #[proc_macro_attribute]
-        pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
-            provider::exec(attr.into(), item.into()).into()
+        pub fn provider(attr: TokenStream, input: TokenStream) -> TokenStream {
+            provider::exec(attr.into(), input.into()).into()
         }
     };
 }
@@ -61,9 +61,9 @@ use syn::{
 
 use crate::helper::{ProvideTarget, build_provider, build_provider_by_env};
 
-pub fn exec(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
-    let span = item.span();
-    let item_impl = parse2::<ItemImpl>(item)
+pub fn exec(attr: TokenStream2, input: TokenStream2) -> TokenStream2 {
+    let span = input.span();
+    let item_impl = parse2::<ItemImpl>(input)
         .unwrap_or_else(|e| abort!(span, format!("[provider] must be on impl block: {e}")));
 
     let args = parse2::<ProviderArgs>(attr.clone()).unwrap_or_else(move |_| {
