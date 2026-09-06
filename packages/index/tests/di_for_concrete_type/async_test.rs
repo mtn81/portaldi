@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::common::*;
+use crate::helper::*;
 
 #[tokio::test]
 async fn test_di() {

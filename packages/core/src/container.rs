@@ -18,6 +18,12 @@ pub struct DIContainer {
     components: RwLock<HashMap<String, DI<dyn Any + Send + Sync>>>,
 }
 
+impl Default for DIContainer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DIContainer {
     /// Create new instance.
     pub fn new() -> DIContainer {

@@ -40,6 +40,7 @@ macro_rules! define {
         ///   }
         ///   ```
         ///
+        #[proc_macro_error]
         #[proc_macro_derive(DIPortal, attributes(provide, inject))]
         pub fn derive_di_portal(input: TokenStream) -> TokenStream {
             derive_di_portal::exec(input.into()).into()
@@ -48,18 +49,20 @@ macro_rules! define {
 }
 pub(crate) use define;
 
+use proc_macro_error::abort;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
+    Attribute, Data, DeriveInput, GenericArgument, Ident, Meta, Path, PathArguments, Token, Type,
+    TypeParamBound, TypeTuple,
     parse::{Parse, ParseStream},
     parse2,
     punctuated::Punctuated,
-    Attribute, Data, DeriveInput, GenericArgument, Ident, Meta, Path, PathArguments, Token, Type,
-    TypeParamBound, TypeTuple,
+    spanned::Spanned as _,
 };
 
 use crate::helper::{
-    async_trait_attr, attr_of, build_provider, build_provider_by_env, Generics_, ProvideTarget,
+    Generics_, ProvideTarget, async_trait_attr, attr_of, build_provider, build_provider_by_env,
 };
 
 pub fn exec(input: TokenStream) -> TokenStream {
@@ -68,6 +71,7 @@ pub fn exec(input: TokenStream) -> TokenStream {
         .and_then(|s| s.parse::<bool>().ok())
         .unwrap_or(false);
 
+    let span = input.span();
     let DeriveInput {
         data,
         vis,
@@ -75,7 +79,9 @@ pub fn exec(input: TokenStream) -> TokenStream {
         generics,
         attrs,
         ..
-    } = parse2(input).unwrap();
+    } = parse2(input).unwrap_or_else(|_| {
+        abort!(span, "invalid input");
+    });
 
     match data {
         Data::Struct(s) => {
@@ -87,8 +93,12 @@ pub fn exec(input: TokenStream) -> TokenStream {
                     let is_async = is_always_async
                         || inject_attr.as_ref().map(|a| a.is_async).unwrap_or(false);
                     let inject_path = inject_attr.as_ref().and_then(|a| a.path.as_ref());
-                    let di_expr = build_field_di(&f, inject_path);
-                    let field_ident = f.ident.as_ref().unwrap().clone();
+                    let di_expr = build_field_di(f, inject_path);
+                    let field_ident = f
+                        .ident
+                        .as_ref()
+                        .unwrap_or_else(|| abort!(f, "expected named field"))
+                        .clone();
                     FieldDI {
                         field_ident,
                         is_async,
@@ -101,7 +111,12 @@ pub fn exec(input: TokenStream) -> TokenStream {
             let di_portal_quote = build_portal(&ident, field_dis, is_totally_async);
 
             let provider_quote = if let Some(provide_attr) = attr_of(&attrs, "provide") {
-                let provide_target = provide_attr.parse_args::<ProvideTarget>().unwrap();
+                let provide_target =
+                    provide_attr
+                        .parse_args::<ProvideTarget>()
+                        .unwrap_or_else(move |e| {
+                            abort!(provide_attr, format!("invalid provide attribute: {e}"))
+                        });
                 build_provider(&ident, &provide_target, is_totally_async, true, None)
             } else {
                 build_provider_by_env(&ident, is_totally_async)
@@ -116,7 +131,11 @@ pub fn exec(input: TokenStream) -> TokenStream {
                         params: generics
                             .params
                             .iter()
-                            .map(|p| syn::parse2::<Type>(quote!(#p)).unwrap())
+                            .map(|p| {
+                                syn::parse2::<Type>(quote!(#p)).unwrap_or_else(|e| {
+                                    abort!(p, format!("invalid generic type: {e}"))
+                                })
+                            })
                             .collect(),
                         gt: generics.gt_token,
                     },
@@ -134,11 +153,9 @@ pub fn exec(input: TokenStream) -> TokenStream {
 
             // println!("check !!!! {:}", result);
 
-            result.into()
+            result
         }
-        _ => syn::Error::new_spanned(&ident, "Must be struct type")
-            .to_compile_error()
-            .into(),
+        _ => syn::Error::new_spanned(&ident, "Must be struct type").to_compile_error(),
     }
 }
 
@@ -147,12 +164,12 @@ struct InjectAttr {
     is_async: bool,
 }
 
-fn parse_inject_attr(attrs: &Vec<Attribute>) -> Option<InjectAttr> {
+fn parse_inject_attr(attrs: &[Attribute]) -> Option<InjectAttr> {
     attr_of(attrs, "inject").and_then(|attr| match &attr.meta {
         Meta::List(metas) => {
             let args = metas
                 .parse_args_with(Punctuated::<InjectAttrPart, Token![,]>::parse_terminated)
-                .unwrap();
+                .unwrap_or_else(|e| abort!(attr, format!("invalid inject attribute: {e}")));
 
             let is_async = args.iter().any(|arg| arg == &InjectAttrPart::Async);
             let path = args.iter().find_map(|arg| match arg {
@@ -172,8 +189,13 @@ fn build_field_di(f: &syn::Field, inject_path: Option<&Path>) -> proc_macro2::To
             let DIType {
                 type_ident: di_type,
                 type_params,
-            } = get_di_type(&f.ty)
-                .expect(format!("{:?} is not DI type", &f.ident.as_ref()).as_str());
+            } = get_di_type(&f.ty).unwrap_or_else(|| {
+                abort!(
+                    f.ty,
+                    "{} is not DI type",
+                    f.ident.as_ref().map(|i| i.to_string()).unwrap_or_default()
+                )
+            });
 
             let type_params_str = type_params
                 .iter()
@@ -200,16 +222,28 @@ struct DIType<'a> {
 
 fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
     if let Type::Path(x) = ty {
-        let last_path_segment = x.path.segments.last().unwrap();
+        let last_path_segment = x
+            .path
+            .segments
+            .last()
+            .unwrap_or_else(|| abort!(x, "invalid for DI type"));
 
         if last_path_segment.ident != "DI" {
             return None;
         }
 
         if let PathArguments::AngleBracketed(x) = &last_path_segment.arguments {
-            let path = match x.args.first().unwrap() {
+            let path = match x
+                .args
+                .first()
+                .unwrap_or_else(|| abort!(x, "invalid generic argument for DI type"))
+            {
                 GenericArgument::Type(Type::TraitObject(x)) => {
-                    if let TypeParamBound::Trait(x) = x.bounds.first().unwrap() {
+                    if let TypeParamBound::Trait(x) = x
+                        .bounds
+                        .first()
+                        .unwrap_or_else(|| abort!(x, "invalid trait bound for DI type"))
+                    {
                         Some(&x.path)
                     } else {
                         None
@@ -219,23 +253,29 @@ fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
                 _ => None,
             };
             if let Some(path) = path {
-                let last_seg = path.segments.last().unwrap();
+                let last_seg = path
+                    .segments
+                    .last()
+                    .unwrap_or_else(|| abort!(path, "invalid generic argument for DI type"));
                 let type_params = match &last_seg.arguments {
-                    PathArguments::AngleBracketed(x) => x
-                        .args
-                        .iter()
-                        .flat_map(|arg| match arg {
-                            GenericArgument::Type(Type::Path(p)) => {
-                                p.path.segments.last().map(|s| s.ident.clone())
-                            }
-                            GenericArgument::Type(Type::Tuple(TypeTuple { elems, .. }))
-                                if elems.is_empty() =>
-                            {
-                                Some(syn::parse2::<Ident>(quote!(Unit)).unwrap())
-                            }
-                            _ => None,
-                        })
-                        .collect(),
+                    PathArguments::AngleBracketed(x) => {
+                        x.args
+                            .iter()
+                            .flat_map(|arg| match arg {
+                                GenericArgument::Type(Type::Path(p)) => {
+                                    p.path.segments.last().map(|s| s.ident.clone())
+                                }
+                                GenericArgument::Type(Type::Tuple(TypeTuple { elems, .. }))
+                                    if elems.is_empty() =>
+                                {
+                                    Some(syn::parse2::<Ident>(quote!(Unit)).unwrap_or_else(|e| {
+                                        abort!(arg, format!("invalid ident: {e}"))
+                                    }))
+                                }
+                                _ => None,
+                            })
+                            .collect()
+                    }
                     _ => vec![],
                 };
 
@@ -246,7 +286,7 @@ fn get_di_type(ty: &Type) -> Option<DIType<'_>> {
             }
         }
     }
-    return None;
+    None
 }
 
 struct FieldDI {
@@ -282,7 +322,7 @@ fn build_portal(
             .iter()
             .map(|f| {
                 let ident = &f.field_ident;
-                let var_name = to_var_name(&ident);
+                let var_name = to_var_name(ident);
                 let expr = &f.di_expr;
                 quote! {
                     let #var_name = #expr;
@@ -298,7 +338,7 @@ fn build_portal(
             .iter()
             .map(|f| {
                 let ident = &f.field_ident;
-                let var_name = to_var_name(&ident);
+                let var_name = to_var_name(ident);
                 let expr = &f.di_expr;
                 if f.is_async {
                     quote! {

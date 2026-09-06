@@ -8,7 +8,6 @@ repository.workspace = true
 description = "Core functionalities for portaldi."
 
 [dependencies]
-once_cell = "1.16"
 async-trait = "0.1"
 
 [dev-dependencies]

@@ -1,0 +1,8 @@
+error: invalid input format
+
+         = help: usage: def_async_di_provider!([dyn] <TargetIdent>[<Generics>], |c| { <create expression> })
+
+ --> tests/compile_fail/cases/use_def_async_di_provider.rs:3:24
+  |
+3 | def_async_di_provider!(Hoge);
+  |                        ^^^^

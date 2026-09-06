@@ -21,6 +21,7 @@ macro_rules! define {
         /// });
         ///
         /// ```
+        #[proc_macro_error]
         #[proc_macro]
         pub fn def_async_di_provider(input: TokenStream) -> TokenStream {
             def_async_di_provider::exec(input.into()).into()
@@ -29,20 +30,28 @@ macro_rules! define {
 }
 pub(crate) use define;
 
+use proc_macro_error::abort;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
-use syn::parse2;
+use syn::{parse2, spanned::Spanned as _};
 
-use crate::helper::{async_trait_attr, DefDiProviderInput};
+use crate::helper::{DefDiProviderInput, async_trait_attr};
 
 pub fn exec(input: TokenStream2) -> TokenStream2 {
+    let span = input.span();
     let DefDiProviderInput {
         kw_dyn,
         target_ident,
         generics,
         create_fn,
         ..
-    } = parse2::<DefDiProviderInput>(input).unwrap();
+    } = parse2::<DefDiProviderInput>(input).unwrap_or_else(move |_| {
+        abort!(
+            span,
+            "invalid input format";
+            help = "usage: def_async_di_provider!([dyn] <TargetIdent>[<Generics>], |c| { <create expression> })";
+        );
+    });
 
     let ty_params_str = generics.type_params_str();
     let provider_ident = format_ident!("{}{}Provider", target_ident, ty_params_str);

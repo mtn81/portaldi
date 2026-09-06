@@ -3,36 +3,15 @@ description: ""
 runs:
   using: "composite"
   steps:
-    - name: Use wasmtime 0.21.0
-      uses: mwilliamson/setup-wasmtime-action@v2
+    - name: Setup wasmtime
+      uses: mwilliamson/setup-wasmtime-action@v3
       with:
-        wasmtime-version: "0.21.0"
+        wasmtime-version: "48.0.1"
 
-    - name: Run [index] tests
+    - name: Format and lint check
       shell: bash
-      run: |
-        cargo clean
-        cargo test --verbose -- --nocapture
+      run: make check
 
-    - name: Run [env_always_async_test] tests
+    - name: Run all tests
       shell: bash
-      run: |
-        cd packages/tests/env_always_async_test/
-        cargo clean
-        cargo test --verbose -- --nocapture
-
-    - name: Run [feature_futures_join_test] tests
-      shell: bash
-      run: |
-        cd packages/tests/feature_futures_join_test/
-        cargo clean
-        cargo test --verbose -- --nocapture
-
-    - name: Run [wasm_test] tests
-      shell: bash
-      run: |
-        rustup target add wasm32-wasip1
-        cd packages/tests/wasm_test/
-        cargo clean
-        cargo test --no-run --target wasm32-wasip1
-        wasmtime target/wasm32-wasip1/debug/deps/*.wasm
+      run: make test-all
