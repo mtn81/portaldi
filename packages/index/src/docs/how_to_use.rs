@@ -13,11 +13,10 @@
 //!   use portaldi::*;
 //!   trait MyTrait: DITarget { }
 //!   ```
-//!   * Structs automatically become DITarget when its fileds are `Send + Sync`.
+//!   * Any type that is `Send + Sync + 'static` implements `DITarget` automatically.
 //!
 //! * In PortalDI, components are handled as singleton and with lazy initioalization by default.
 //!   * If a component must be initialized in advance, you can explicitly call `di` method in where you want.
-//!   * If a component must be prototype (1 instance by 1 ref), you can annotate with `prototype`.
 //!
 //! ### Use struct dependencies
 //!
@@ -177,7 +176,10 @@
 //!     // other deps
 //! }
 //!
-//! def_async_di_provider!(Foo, |c| {
+//! #[derive(DIPortal)]
+//! struct Bar { /* other deps */ }
+//!
+//! def_async_di_provider!(Foo, |c| async move {
 //!     // custom creation logic
 //!     Foo {
 //!         bar: di![Bar on c], // BarProvider must be in this scope
