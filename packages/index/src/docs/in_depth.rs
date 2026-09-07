@@ -121,22 +121,10 @@
 //! one side look the other up on demand inside a method via `di![Other on container]` instead
 //! of holding it as a field.
 //!
-//! ### Feature flags
+//! ### Feature flags and environment variables
 //!
-//! | Feature | Effect |
-//! |---|---|
-//! | `multi-thread` | Force the thread-safe container (`DI<T>` = `Arc<T>`, `DITarget: Send + Sync`) even on `wasm32`. On non-wasm targets the thread-safe container is always used, so this flag only matters for `wasm32`. |
-//! | `futures-join` | When a struct has more than one `#[inject(async)]` field, create those fields concurrently with `futures::join!` instead of sequentially. Requires the `futures` crate as a dependency of your crate. |
-//!
-//! ### Compile-time configuration via environment variables
-//!
-//! These are read by the proc-macros at compile time; set them in `.cargo/config.toml` under
-//! `[env]` so the whole build sees the same value.
-//!
-//! | Variable | Effect |
-//! |---|---|
-//! | `PORTALDI_ALWAYS_ASYNC=true` | Every `#[derive(DIPortal)]` generates `AsyncDIPortal` instead of `DIPortal`. Handy for test builds where some providers are replaced with async ones. |
-//! | `PORTALDI_PROVIDER_PATTERN=<regex>` | For a `#[derive(DIPortal)]` without `#[provide(...)]` (or a bare `#[provider]`), derive the provided trait name from the struct name using capture group 1 of the regex. For example `^(\S+)Impl$` makes `FooImpl` provide `dyn Foo`. |
+//! See [Feature flags](crate#feature-flags) and [Environment variables](crate#environment-variables)
+//! in the crate-level documentation.
 //!
 //! ### Thread-safety and Wasm
 //!
