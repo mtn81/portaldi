@@ -1,8 +1,8 @@
 //! # Tips
 //!
-//! ### Hide `DIProvider` implementation details
+//! ### Hide [`DIProvider`](crate::DIProvider) implementation details
 //!
-//! PortalDI's macros generate a `DIProvider` implementation next to the target struct.
+//! PortalDI's macros generate a [`DIProvider`](crate::DIProvider) implementation next to the target struct.
 //! You then need to import that provider into the scope of the dependent struct.
 //!
 //! ```
@@ -98,7 +98,7 @@
 //! ```
 //!
 //! ### Multiple components of the same type
-//! Use `portaldi::Tagged<T, Tag>` to register several components that share the same underlying type.
+//! Use [`Tagged<T, Tag>`](crate::Tagged) to register several components that share the same underlying type.
 //!
 //! ```
 //! mod demo {

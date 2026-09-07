@@ -30,18 +30,18 @@
 //!
 //! | Feature | Effect |
 //! |---|---|
-//! | `multi-thread` | Force the thread-safe container (`DI<T>` = `Arc<T>`, `DITarget: Send + Sync`) even on `wasm32`. On non-wasm targets the thread-safe container is always used, so this flag only matters for `wasm32`. |
+//! | `multi-thread` | Force the thread-safe container ([`DI<T>`](DI) = `Arc<T>`, [`DITarget`]`: Send + Sync`) even on `wasm32`. On non-wasm targets the thread-safe container is always used, so this flag only matters for `wasm32`. |
 //! | `futures-join` | When a struct has more than one `#[inject(async)]` field, create those fields concurrently with `futures::join!` instead of sequentially. Requires the `futures` crate as a dependency of your crate. |
 //!
 //! # Environment variables
 //!
-//! The proc-macros read these with `std::env::var` while expanding `#[derive(DIPortal)]` /
-//! `#[provider]`. Configure them through `.cargo/config.toml` `[env]`.
+//! The proc-macros read these with `std::env::var` while expanding [`#[derive(DIPortal)]`](derive@DIPortal) /
+//! [`#[provider]`](macro@provider). Configure them through `.cargo/config.toml` `[env]`.
 //!
 //! | Variable | Effect |
 //! |---|---|
-//! | `PORTALDI_ALWAYS_ASYNC` | When the value parses as `true`, every `#[derive(DIPortal)]` emits an `AsyncDIPortal` implementation (and `await`s every field) instead of `DIPortal`. This only compiles if every dependency in the graph is also async. |
-//! | `PORTALDI_PROVIDER_PATTERN` | A regex matched against the struct name. For a `#[derive(DIPortal)]` with no `#[provide(...)]` (or a bare `#[provider]`), capture group 1 is taken as a trait name and a `<group1>Provider` (implementing `DIProvider<Output = dyn <group1>>`) is generated in addition to the self provider. Example: `^(\S+)Impl$` makes `FooImpl` provide `dyn Foo` as `FooProvider`. A non-matching name generates nothing; an invalid regex aborts compilation. |
+//! | `PORTALDI_ALWAYS_ASYNC` | When the value parses as `true`, every [`#[derive(DIPortal)]`](derive@DIPortal) emits an [`AsyncDIPortal`] implementation (and `await`s every field) instead of [`DIPortal`](trait@DIPortal). This only compiles if every dependency in the graph is also async. |
+//! | `PORTALDI_PROVIDER_PATTERN` | A regex matched against the struct name. For a [`#[derive(DIPortal)]`](derive@DIPortal) with no `#[provide(...)]` (or a bare [`#[provider]`](macro@provider)), capture group 1 is taken as a trait name and a `<group1>Provider` (implementing [`DIProvider`] with `Output = dyn <group1>`) is generated in addition to the self provider. Example: `^(\S+)Impl$` makes `FooImpl` provide `dyn Foo` as `FooProvider`. A non-matching name generates nothing; an invalid regex aborts compilation. |
 //!
 //! Cargo does not track these reads, so changing a value may not trigger a rebuild on its own;
 //! editing `.cargo/config.toml` does, otherwise run `cargo clean`.

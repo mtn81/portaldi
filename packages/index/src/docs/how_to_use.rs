@@ -2,26 +2,26 @@
 //!
 //! ### Basics
 //!
-//! * PortalDI handles dependencies as fields (constructor injection). Each dependency must be declared as `DI<T>`.
+//! * PortalDI handles dependencies as fields (constructor injection). Each dependency must be declared as [`DI<T>`](crate::DI).
 //!
 //! * PortalDI injects dependencies through their corresponding provider types.
-//!   * `DI<T>` is resolved by `TProvider`, which implements `portaldi::DIProvider`.
+//!   * [`DI<T>`](crate::DI) is resolved by `TProvider`, which implements [`DIProvider`](crate::DIProvider).
 //!
-//! * Dependency types must implement `DITarget` and be thread-safe.
-//!   * Trait dependencies must have `DITarget` as a supertrait.
+//! * Dependency types must implement [`DITarget`](crate::DITarget) and be thread-safe.
+//!   * Trait dependencies must have [`DITarget`](crate::DITarget) as a supertrait.
 //!   ```
 //!   use portaldi::*;
 //!   trait MyTrait: DITarget { }
 //!   ```
-//!   * Any type that is `Send + Sync + 'static` implements `DITarget` automatically.
+//!   * Any type that is `Send + Sync + 'static` implements [`DITarget`](crate::DITarget) automatically.
 //!
 //! * By default, components are treated as lazily-initialized singletons.
-//!   * If a component must be initialized in advance, call its `di` method explicitly wherever you need it.
+//!   * If a component must be initialized in advance, call its [`di`](crate::DIPortal::di) method explicitly wherever you need it.
 //!
 //! ### Struct dependencies
 //!
 //! When a dependency is a struct, simply annotate the target struct.
-//! PortalDI's macro generates a `DIPortal` implementation for the target struct.
+//! PortalDI's macro generates a [`DIPortal`](trait@crate::DIPortal) implementation for the target struct.
 //!
 //! ```
 //! use portaldi::*;
@@ -43,9 +43,9 @@
 //!
 //! ### Trait object dependencies
 //!
-//! When a dependency is a trait object, annotate the target struct with a `provide` attribute.
-//! PortalDI's macro generates a `DIPortal` implementation for the target struct and a `portaldi::DIProvider` implementation for the trait.
-//! The dependency's `portaldi::DIProvider` must be in scope where the dependent struct is defined.
+//! When a dependency is a trait object, annotate the target struct with a `#[provide]` attribute.
+//! PortalDI's macro generates a [`DIPortal`](trait@crate::DIPortal) implementation for the target struct and a [`DIProvider`](crate::DIProvider) implementation for the trait.
+//! The dependency's [`DIProvider`](crate::DIProvider) must be in scope where the dependent struct is defined.
 //!
 //! ```
 //! use portaldi::*;
@@ -73,7 +73,7 @@
 //!
 //! ### Custom creation logic
 //!
-//! When a component needs custom construction logic (for example, a type from an external crate), define a `portaldi::DIProvider` implementation with the `portaldi::def_di_provider!` shorthand macro.
+//! When a component needs custom construction logic (for example, a type from an external crate), define a [`DIProvider`](crate::DIProvider) implementation with the [`def_di_provider!`](crate::def_di_provider) shorthand macro.
 //!
 //! #### Struct dependency
 //!
@@ -100,7 +100,7 @@
 //! ```
 //!
 //! #### Trait object dependency
-//! Use the `dyn` keyword with the `portaldi::def_di_provider!` macro.
+//! Use the `dyn` keyword with the [`def_di_provider!`](crate::def_di_provider) macro.
 //!
 //! ```
 //! use portaldi::*;
@@ -128,7 +128,7 @@
 //! ```
 //!
 //! #### Async creation logic
-//! Use the `portaldi::def_async_di_provider!` macro.
+//! Use the [`def_async_di_provider!`](crate::def_async_di_provider) macro.
 //! Also annotate the dependency field with `#[inject(async)]`.
 //!
 //! ```
@@ -158,7 +158,7 @@
 //!
 //! #### Creation logic that depends on other components
 //! If the custom creation logic needs other components,
-//! combine the `portaldi::def_di_provider!` macro (or its async variant) with the `portaldi::di!` macro.
+//! combine the [`def_di_provider!`](crate::def_di_provider) macro (or its async variant) with the [`di!`](crate::di) macro.
 //!
 //! ```
 //! use portaldi::*;
