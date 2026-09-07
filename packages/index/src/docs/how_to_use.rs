@@ -2,26 +2,26 @@
 //!
 //! ### Basics
 //!
-//! * PortalDI handle a dependency as a field (constructor injection). Dependencies must be specified as `DI<T>`.
+//! * PortalDI handles dependencies as fields (constructor injection). Each dependency must be declared as `DI<T>`.
 //!
-//! * PortalDI injects depencencies via corresponding Provider types.
-//!   * DI<T> is resolved by TProvider which implements `portaldi::DIProvider`.
+//! * PortalDI injects dependencies through their corresponding provider types.
+//!   * `DI<T>` is resolved by `TProvider`, which implements `portaldi::DIProvider`.
 //!
-//! * Depencency types must implement `DITarget` and be thread safe.
-//!   * Trait dependencies must be DITarget.
+//! * Dependency types must implement `DITarget` and be thread-safe.
+//!   * Trait dependencies must have `DITarget` as a supertrait.
 //!   ```
 //!   use portaldi::*;
 //!   trait MyTrait: DITarget { }
 //!   ```
 //!   * Any type that is `Send + Sync + 'static` implements `DITarget` automatically.
 //!
-//! * In PortalDI, components are handled as singleton and with lazy initioalization by default.
-//!   * If a component must be initialized in advance, you can explicitly call `di` method in where you want.
+//! * By default, components are treated as lazily-initialized singletons.
+//!   * If a component must be initialized in advance, call its `di` method explicitly wherever you need it.
 //!
-//! ### Use struct dependencies
+//! ### Struct dependencies
 //!
-//! When a dependency is a struct, you can simply annotate on a target.
-//! The PortalDI's macro generates DIPortal implementation for a target struct.
+//! When a dependency is a struct, simply annotate the target struct.
+//! PortalDI's macro generates a `DIPortal` implementation for the target struct.
 //!
 //! ```
 //! use portaldi::*;
@@ -41,11 +41,11 @@
 //! ```
 //!
 //!
-//! ### Use trait object dependencies
+//! ### Trait object dependencies
 //!
-//! When a dependency is a trait object, you can annotate a target struct with a `provide` attribute.
-//! The PortalDI's macro generates DIPortal implementation for the target struct and `portaldi::DIProvider` implementation for the trait.
-//! The dependent struct's scope must have the depencency `portaldi::DIProvider`.
+//! When a dependency is a trait object, annotate the target struct with a `provide` attribute.
+//! PortalDI's macro generates a `DIPortal` implementation for the target struct and a `portaldi::DIProvider` implementation for the trait.
+//! The dependency's `portaldi::DIProvider` must be in scope where the dependent struct is defined.
 //!
 //! ```
 //! use portaldi::*;
@@ -71,11 +71,11 @@
 //!
 //! ```
 //!
-//! ### Create components via manual creation logic.
+//! ### Custom creation logic
 //!
-//! When you need a custom creation logic for a compoonent (ex. components from external library), you can define a `portaldi::DIProvider` implementation with shorthand macro `portaldi::def_di_provider`.
+//! When a component needs custom construction logic (for example, a type from an external crate), define a `portaldi::DIProvider` implementation with the `portaldi::def_di_provider!` shorthand macro.
 //!
-//! #### For struct dependency
+//! #### Struct dependency
 //!
 //! ```
 //! use portaldi::*;
@@ -99,8 +99,8 @@
 //!
 //! ```
 //!
-//! #### For trait object depencency
-//! Use the dyn keyword with `portaldi::def_di_provider` macro.
+//! #### Trait object dependency
+//! Use the `dyn` keyword with the `portaldi::def_di_provider!` macro.
 //!
 //! ```
 //! use portaldi::*;
@@ -127,9 +127,9 @@
 //!
 //! ```
 //!
-//! #### For async creation logic
-//! You can use `portaldi::def_async_di_provider` macro.
-//! Also you need anotate `inject` with `async` on the depencency field.
+//! #### Async creation logic
+//! Use the `portaldi::def_async_di_provider!` macro.
+//! Also annotate the dependency field with `#[inject(async)]`.
 //!
 //! ```
 //! use portaldi::*;
@@ -156,9 +156,9 @@
 //!
 //! ```
 //!
-//! #### For complex creation logic that involves other components.
-//! If a depencency has custom creation logic that needs other components,
-//! you can use acombination of `portaldi::def_di_provider` and `portaldi::di`.
+//! #### Creation logic that depends on other components
+//! If the custom creation logic needs other components,
+//! combine the `portaldi::def_di_provider!` macro (or its async variant) with the `portaldi::di!` macro.
 //!
 //! ```
 //! use portaldi::*;

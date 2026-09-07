@@ -1,9 +1,9 @@
 //! # Tips
 //!
-//! ### Hide `DIProvider` implementation details.
+//! ### Hide `DIProvider` implementation details
 //!
-//! The PortalDI's macro generates `DIProvider` implementation block next to a target struct.
-//! And you needs import the DIProvider into dependent's scope.
+//! PortalDI's macros generate a `DIProvider` implementation next to the target struct.
+//! You then need to import that provider into the scope of the dependent struct.
 //!
 //! ```
 //! mod demo {
@@ -47,9 +47,9 @@
 //! }
 //! ```
 //!
-//! You may want to avoid this implementation imports.
-//! In that case, add provider barrel module with re-export to hide detailed imports.
-//! Also you can switch multiple barrel modules via cfg.
+//! You may want to avoid importing these implementation details directly.
+//! In that case, add a *barrel* module that re-exports the providers to hide the detailed imports.
+//! You can also swap between several barrel modules with `#[cfg(...)]`.
 //!
 //! ```
 //! mod demo {
@@ -97,8 +97,8 @@
 //! }
 //! ```
 //!
-//! ### Use multiple components with a same type.
-//! You can define multiple components with tags using `portaldi::Tagged`.
+//! ### Multiple components of the same type
+//! Use `portaldi::Tagged<T, Tag>` to register several components that share the same underlying type.
 //!
 //! ```
 //! mod demo {

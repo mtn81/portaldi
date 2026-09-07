@@ -44,6 +44,7 @@ packages
 
 - コミットする前に必ず `make check` と `make test-all` を実行する
 - rustのバージョンが上がった場合などに、trybuildのstderrの出力がズレたらTRYBUILD=overwriteで再生成する
+- ドキュメントは、packages/index/src/docs/ 配下に配置されている。
 
 ## PRレビュー時の観点
 
@@ -54,5 +55,6 @@ packages
 - パフォーマンスの考慮点
 - セキュリティ上の懸念
 - テストカバレッジ
+- ドキュメントに内容が反映されているか
 
 レビュー結果は必ず日本語で記述し、建設的で役立つ内容を心がける。
