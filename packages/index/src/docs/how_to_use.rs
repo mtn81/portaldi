@@ -2,24 +2,26 @@
 //!
 //! ### Basics
 //!
-//! * PortalDI handle a dependency as a field (constructor injection). Dependencies must be specified as `DI<T>`.
+//! * PortalDI handles dependencies as fields (constructor injection). Each dependency must be declared as [`DI<T>`](crate::DI).
 //!
-//! * Depencency types must implement `DITarget` and be thread safe.
-//!   * Traits must be DITarget.
+//! * PortalDI injects dependencies through their corresponding provider types.
+//!   * [`DI<T>`](crate::DI) is resolved by `TProvider`, which implements [`DIProvider`](crate::DIProvider).
+//!
+//! * Dependency types must implement [`DITarget`](crate::DITarget) and be thread-safe.
+//!   * Trait dependencies must have [`DITarget`](crate::DITarget) as a supertrait.
 //!   ```
 //!   use portaldi::*;
 //!   trait MyTrait: DITarget { }
 //!   ```
-//!   * Structs automatically become DITarget when its fileds are `Send + Sync`.
+//!   * Any type that is `Send + Sync + 'static` implements [`DITarget`](crate::DITarget) automatically.
 //!
-//! * In PortalDI, components are handled as singleton and with lazy initioalization by default.
-//!   * If a component must be initialized in advance, you can explicitly call `di` method in where you want.
-//!   * If a component must be prototype (1 instance by 1 ref), you can annotate with `prototype`.
+//! * By default, components are treated as lazily-initialized singletons.
+//!   * If a component must be initialized in advance, call its [`di`](crate::DIPortal::di) method explicitly wherever you need it.
 //!
-//! ### Structs dependencies
+//! ### Struct dependencies
 //!
-//! When a dependency is a struct, you can simply annotate on a target.
-//! The PortalDI's macro generates DIPortal implementation for a target struct.
+//! When a dependency is a struct, simply annotate the target struct.
+//! PortalDI's macro generates a [`DIPortal`](trait@crate::DIPortal) implementation for the target struct.
 //!
 //! ```
 //! use portaldi::*;
@@ -41,9 +43,9 @@
 //!
 //! ### Trait object dependencies
 //!
-//! When a dependency is a trait object, you can annotate a target struct with a `provide` attribute.
-//! The PortalDI's macro generates DIPortal implementation for the target struct and DIProvider implementation for the trait.
-//! The dependent struct's scope must have the depencency DIProvider.
+//! When a dependency is a trait object, annotate the target struct with a `#[provide]` attribute.
+//! PortalDI's macro generates a [`DIPortal`](trait@crate::DIPortal) implementation for the target struct and a [`DIProvider`](crate::DIProvider) implementation for the trait.
+//! The dependency's [`DIProvider`](crate::DIProvider) must be in scope where the dependent struct is defined.
 //!
 //! ```
 //! use portaldi::*;
@@ -69,11 +71,11 @@
 //!
 //! ```
 //!
-//! ### Manually component creation
+//! ### Custom creation logic
 //!
-//! When you need a custom creation logic for a compoonent, you manually define a implementation for `DIPortal`.
+//! When a component needs custom construction logic (for example, a type from an external crate), define a [`DIProvider`](crate::DIProvider) implementation with the [`def_di_provider!`](crate::def_di_provider) shorthand macro.
 //!
-//! #### For struct type depencency
+//! #### Struct dependency
 //!
 //! ```
 //! use portaldi::*;
@@ -86,21 +88,19 @@
 //!
 //! pub struct Foo { /* other deps */ }
 //!
-//! #[provider(Self)]
-//! impl DIPortal for Foo {
-//!     fn create_for_di(container: &DIContainer) -> Self {
-//!         // custom creation logic
-//!         Foo {}
-//!     }
-//! }
+//! // you can use the shorthand macro to define a provider.
+//! def_di_provider!(Foo, |_c| {
+//!     // custom creation logic
+//!     Foo {}
+//! });
 //!
 //! // Use component
 //! Hoge::di();
 //!
 //! ```
 //!
-//! #### For trait object depencency
-//! If a depencency is a trait object and has custom creation logic, you can annotate `provider` on a `DIPortal` implementation.
+//! #### Trait object dependency
+//! Use the `dyn` keyword with the [`def_di_provider!`](crate::def_di_provider) macro.
 //!
 //! ```
 //! use portaldi::*;
@@ -117,22 +117,19 @@
 //!
 //! impl FooI for Foo {}
 //!
-//! #[provider(FooI)]
-//! impl DIPortal for Foo {
-//!     fn create_for_di(container: &DIContainer) -> Self {
-//!         // custom creation logic
-//!         Foo {}
-//!     }
-//! }
+//! def_di_provider!(dyn FooI, |_c| {
+//!     // custom creation logic
+//!     Foo {}
+//! });
 //!
 //! // Use component
 //! Hoge::di();
 //!
 //! ```
 //!
-//! #### For async creation logic
-//! If a depencency has async custom creation logic, you manually define a implementation for `AsyncDIPortal`.
-//! Also you need anotate `inject` with `async` on the depencency field.
+//! #### Async creation logic
+//! Use the [`def_async_di_provider!`](crate::def_async_di_provider) macro.
+//! Also annotate the dependency field with `#[inject(async)]`.
 //!
 //! ```
 //! use portaldi::*;
@@ -147,14 +144,10 @@
 //!
 //! pub struct Foo { /* other deps */ }
 //!
-//! #[provider(Self)]
-//! #[async_trait]
-//! impl AsyncDIPortal for Foo {
-//!     async fn create_for_di(container: &DIContainer) -> Self {
-//!         // custom creation logic
-//!         Foo {}
-//!     }
-//! }
+//! def_async_di_provider!(Foo, |_c| async {
+//!     // custom creation logic
+//!     Foo {}
+//! });
 //!
 //! async {
 //!     // Use component
@@ -163,8 +156,9 @@
 //!
 //! ```
 //!
-//! #### For complex creation logic that involves other components.
-//! If a depencency has custom creation logic that needs other components, you manually define a factory component and implementation for `DIPortal`.
+//! #### Creation logic that depends on other components
+//! If the custom creation logic needs other components,
+//! combine the [`def_di_provider!`](crate::def_di_provider) macro (or its async variant) with the [`di!`](crate::di) macro.
 //!
 //! ```
 //! use portaldi::*;
@@ -172,36 +166,26 @@
 //!
 //! #[derive(DIPortal)]
 //! struct Hoge {
-//!   #[inject(async)]
-//!   foo: DI<Foo>,
-//!   // other deps
+//!     #[inject(async)]
+//!     foo: DI<Foo>,
+//!     // other deps
 //! }
 //!
-//! pub struct Foo { /* other deps */ }
-//!
-//! #[provider(Self)]
-//! #[async_trait]
-//! impl AsyncDIPortal for Foo {
-//!     async fn create_for_di(container: &DIContainer) -> Self {
-//!         FooFactory::di_on(container).create().await
-//!     }
-//! }
-//!
-//! #[derive(DIPortal)]
-//! struct FooFactory {
+//! pub struct Foo {
 //!     bar: DI<Bar>,
 //!     // other deps
 //! }
 //!
-//! impl FooFactory {
-//!   async fn create(&self) -> Foo {
-//!     // custom creation logic that needs a bar.
-//!     Foo {}
-//!   }
-//! }
-//!
 //! #[derive(DIPortal)]
 //! struct Bar { /* other deps */ }
+//!
+//! def_async_di_provider!(Foo, |c| async move {
+//!     // custom creation logic
+//!     Foo {
+//!         bar: di![Bar on c], // BarProvider must be in this scope
+//!         // other deps
+//!     }
+//! });
 //!
 //! async {
 //!     // Use component

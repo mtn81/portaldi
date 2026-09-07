@@ -1,13 +1,12 @@
-//! # TIPS
+//! # Tips
 //!
-//! ### Hide `DIProvider` implementation details.
+//! ### Hide [`DIProvider`](crate::DIProvider) implementation details
 //!
-//! The PortalDI's macro generates `DIProvider` implementation block next to a target struct.
-//! And you needs import the DIProvider into dependent's scope.
+//! PortalDI's macros generate a [`DIProvider`](crate::DIProvider) implementation next to the target struct.
+//! You then need to import that provider into the scope of the dependent struct.
 //!
 //! ```
-//! mod tips1 {
-//!
+//! mod demo {
 //!     mod service {
 //!         use portaldi::*;
 //!
@@ -46,16 +45,14 @@
 //!          bar: DI<dyn BarI>,
 //!     }
 //! }
-//!
 //! ```
 //!
-//! You may want to avoid this implementation imports.
-//! In that case, add provider barrel module with re-export to hide detailed imports.
-//!
+//! You may want to avoid importing these implementation details directly.
+//! In that case, add a *barrel* module that re-exports the providers to hide the detailed imports.
+//! You can also swap between several barrel modules with `#[cfg(...)]`.
 //!
 //! ```
-//! mod tips1 {
-//!
+//! mod demo {
 //!     mod service {
 //!         use portaldi::*;
 //!
@@ -98,7 +95,33 @@
 //!          bar: DI<dyn BarI>,
 //!     }
 //! }
-//!
 //! ```
 //!
+//! ### Multiple components of the same type
+//! Use [`Tagged<T, Tag>`](crate::Tagged) to register several components that share the same underlying type.
 //!
+//! ```
+//! mod demo {
+//!     use portaldi::*;
+//!
+//!     pub struct Tag1;
+//!     pub struct Tag2;
+//!
+//!     #[derive(DIPortal)]
+//!     pub struct Foo {
+//!         // deps
+//!     }
+//!
+//!     fn create_another_foo() -> Foo { unimplemented!() }
+//!
+//!     def_di_provider!(Tagged<Foo, Tag1>, |c| Tagged::wrap(di![Foo on c]));
+//!     def_di_provider!(Tagged<Foo, Tag2>, |_c| Tagged::new(create_another_foo()));
+//!
+//!     #[derive(DIPortal)]
+//!     struct Hoge {
+//!         foo1: DI<Tagged<Foo, Tag1>>,
+//!         foo2: DI<Tagged<Foo, Tag2>>,
+//!         // other deps
+//!     }
+//! }
+//! ```

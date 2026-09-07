@@ -1,11 +1,11 @@
 macro_rules! define {
     () => {
-        /// Generate a [`AsyncDIProvider`] implementation.
+        /// Generate an [`AsyncDIProvider`] implementation.
         ///
         /// ```ignore
         /// pub struct Hoge {}
         ///
-        /// // This macro is useful if you want to define a [`AsyncDIProvider`] manually.
+        /// // This macro is useful if you want to define an AsyncDIProvider manually.
         /// def_async_di_provider!(Hoge, |c| async {
         ///     // some asynchronous creation logic
         /// });
@@ -21,6 +21,8 @@ macro_rules! define {
         /// });
         ///
         /// ```
+        ///
+        /// [`AsyncDIProvider`]: https://docs.rs/portaldi/latest/portaldi/trait.AsyncDIProvider.html
         #[proc_macro_error]
         #[proc_macro]
         pub fn def_async_di_provider(input: TokenStream) -> TokenStream {
