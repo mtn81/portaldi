@@ -1,8 +1,9 @@
 macro_rules! define {
     () => {
-        /// Generate a [`DIPortal`] and [`DIProvider`] or [`AsyncDIPortal`] and [`AsyncDIProvider`] implementation.
+        /// Generate a [`DIPortal`] and [`DIProvider`]
+        /// or [`AsyncDIPortal`] and [`AsyncDIProvider`] implementation.
         ///
-        /// * `provide`: generate [`DIProvider`] implementation for a specified trait.
+        /// * `provide`: generate a [`DIProvider`] implementation for a specified trait.
         ///   ```ignore
         ///   #[derive(DIPortal)]
         ///   #[provide(HogeI)] // HogeIProvider will be generated.
@@ -40,6 +41,10 @@ macro_rules! define {
         ///   }
         ///   ```
         ///
+        /// [`DIPortal`]: https://docs.rs/portaldi/latest/portaldi/trait.DIPortal.html
+        /// [`DIProvider`]: https://docs.rs/portaldi/latest/portaldi/trait.DIProvider.html
+        /// [`AsyncDIPortal`]: https://docs.rs/portaldi/latest/portaldi/trait.AsyncDIPortal.html
+        /// [`AsyncDIProvider`]: https://docs.rs/portaldi/latest/portaldi/trait.AsyncDIProvider.html
         #[proc_macro_error]
         #[proc_macro_derive(DIPortal, attributes(provide, inject))]
         pub fn derive_di_portal(input: TokenStream) -> TokenStream {

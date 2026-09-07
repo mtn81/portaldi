@@ -2,7 +2,7 @@ macro_rules! define {
     () => {
         /// Generate a [`DIProvider`] or [`AsyncDIProvider`] implementation. (attribute macro)
         ///
-        /// This attribute must be on [`DIPortal`] or [`AsyncDIPortal`] impl block.
+        /// This attribute must be on a [`DIPortal`] or [`AsyncDIPortal`] impl block.
         ///
         /// ```ignore
         /// trait HogeI {}
@@ -29,7 +29,7 @@ macro_rules! define {
         /// }
         /// ```
         ///
-        /// You can also generate [`DIProvider`] for Self type.
+        /// You can also generate a [`DIProvider`] for the Self type.
         /// ```ignore
         /// struct Hoge {}
         ///
@@ -40,6 +40,10 @@ macro_rules! define {
         /// }
         /// ```
         ///
+        /// [`DIPortal`]: https://docs.rs/portaldi/latest/portaldi/trait.DIPortal.html
+        /// [`AsyncDIPortal`]: https://docs.rs/portaldi/latest/portaldi/trait.AsyncDIPortal.html
+        /// [`DIProvider`]: https://docs.rs/portaldi/latest/portaldi/trait.DIProvider.html
+        /// [`AsyncDIProvider`]: https://docs.rs/portaldi/latest/portaldi/trait.AsyncDIProvider.html
         #[proc_macro_error]
         #[proc_macro_attribute]
         pub fn provider(attr: TokenStream, input: TokenStream) -> TokenStream {

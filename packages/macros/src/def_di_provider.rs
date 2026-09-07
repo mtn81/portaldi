@@ -5,7 +5,7 @@ macro_rules! define {
         /// ```ignore
         /// pub struct Hoge {}
         ///
-        /// // This macro is useful if you want to define the [`DIProvider`] manually.
+        /// // This macro is useful if you want to define the DIProvider manually.
         /// def_di_provider!(Hoge, |c| {
         ///     // some creation logic
         /// });
@@ -21,6 +21,8 @@ macro_rules! define {
         /// });
         ///
         /// ```
+        ///
+        /// [`DIProvider`]: https://docs.rs/portaldi/latest/portaldi/trait.DIProvider.html
         #[proc_macro_error]
         #[proc_macro]
         pub fn def_di_provider(input: TokenStream) -> TokenStream {
