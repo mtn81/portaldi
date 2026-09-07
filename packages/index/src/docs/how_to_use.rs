@@ -1,5 +1,8 @@
 //! # How to use
 //!
+//! For less common configuration (`#[inject]` overrides, scoped containers, feature flags,
+//! Wasm, environment variables) see [`in_depth`](crate::docs::in_depth).
+//!
 //! ### Basics
 //!
 //! * PortalDI handles dependencies as fields (constructor injection). Each dependency must be declared as `DI<T>`.
