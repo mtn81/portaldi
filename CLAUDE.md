@@ -21,7 +21,10 @@ cargo build
 cargo fmt
 
 # フォーマット/リントチェック (cargo fmt --check + cargo clippy -- -D warnings)
-make check
+make lint
+
+# フォーマット/リントの自動修正 (cargo fmt + cargo clippy --fix)
+make lint-fix
 
 # 全パッケージのテスト (ワークスペース外のテストパッケージ含む)
 make test-all
@@ -42,7 +45,7 @@ packages
 
 ## 注意事項
 
-- コミットする前に必ず `make check` と `make test-all` を実行する
+- コミットする前に必ず `make lint` と `make test-all` を実行する
 - rustのバージョンが上がった場合などに、trybuildのstderrの出力がズレたらTRYBUILD=overwriteで再生成する
 - ドキュメントは、packages/index/src/docs/ 配下に配置されている。
 
