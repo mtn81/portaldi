@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Fetch Dependabot metadata
         id: meta
-        uses: dependabot/fetch-metadata@v2
+        uses: dependabot/fetch-metadata@v3
 
       # Enable GitHub auto-merge for non-major bumps. The PR is only merged
       # once the required "build" check passes (see branch protection on main).
