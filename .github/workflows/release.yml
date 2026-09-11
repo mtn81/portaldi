@@ -18,7 +18,7 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
       with:
         token: ${{secrets.PAT}}
 
@@ -29,7 +29,7 @@ jobs:
         sed -i -e "s/^version = .*#tag:release-version$/version = \"$version\" #tag:release-version/g" ./Cargo.toml
         echo "Debug: Cargo.toml"
         cat ./Cargo.toml
-    - uses: stefanzweifel/git-auto-commit-action@v5
+    - uses: stefanzweifel/git-auto-commit-action@v7
       with:
         commit_message: Automated version update on release
         branch: main
