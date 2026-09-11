@@ -16,7 +16,7 @@ syn = { version = "2.0.101", features = [
     "visit-mut",
     "visit",
 ] }
-darling = "0.20.3"
+darling = "0.24.1"
 proc-macro-error = "1.0.4"
 regex = "1.7.0"
 
