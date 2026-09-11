@@ -80,7 +80,8 @@ pub fn exec(attr: TokenStream2, input: TokenStream2) -> TokenStream2 {
 
     // dbg!(&item_impl.trait_);
     let is_portal_impl = match &item_impl.trait_ {
-        Some((_, p, _)) => p
+        // syn 3.0 dropped the leading `Option<Token![!]>` from `ItemImpl::trait_`.
+        Some((p, _)) => p
             .segments
             .last()
             .is_some_and(|s| s.ident == "DIPortal" || s.ident == "AsyncDIPortal"),
