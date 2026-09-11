@@ -10,7 +10,7 @@ runs:
 
     - name: Format and lint check
       shell: bash
-      run: make check
+      run: make lint
 
     - name: Run all tests
       shell: bash
