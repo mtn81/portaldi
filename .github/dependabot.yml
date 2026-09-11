@@ -1,0 +1,40 @@
+version: 2
+updates:
+  # Rust dependencies: the Cargo workspace plus the excluded test packages.
+  - package-ecosystem: "cargo"
+    directories:
+      - "/"
+      - "/packages/tests/env_always_async_test"
+      - "/packages/tests/feature_futures_join_test"
+      - "/packages/tests/wasm_test"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "chore"
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      # Bundle non-breaking bumps into a single PR; majors stay separate.
+      cargo-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions in workflows and the composite action under .github/actions/
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "chore"
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
