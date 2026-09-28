@@ -52,7 +52,7 @@
 //! [`in_depth`](docs::in_depth).
 //!
 
-pub use portaldi_core::{container::*, traits::*, types::*};
+pub use portaldi_core::{container::*, global, traits::*, types::*};
 pub use portaldi_macros::*;
 
 pub mod docs;

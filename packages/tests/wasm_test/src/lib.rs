@@ -34,7 +34,8 @@ mod tests {
     #[test]
     fn test_sync() {
         let hoge = Hoge::di();
-        println!("{:?}", hoge)
+        println!("{:?}", hoge);
+        assert_eq!(global::get::<Hoge>().is_some(), true);
     }
     #[test]
     fn test_sync_2() {

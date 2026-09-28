@@ -3,7 +3,7 @@
 use async_trait::async_trait;
 
 use crate::container::DIContainer;
-use crate::globals::INSTANCE;
+use crate::global::INSTANCE;
 use crate::types::DI;
 
 /// Represent DI target type.
