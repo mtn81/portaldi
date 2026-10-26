@@ -24,11 +24,19 @@ test-all: ## Run all tests.
 		cargo test --no-run --verbose --target wasm32-wasip1 && \
 		ls target/wasm32-wasip1/debug/deps/*.wasm | xargs -I {} wasmtime {}
 
+# wasm_test is not measured because its tests run on wasmtime.
+# Instrumented builds go to a separate target dir, because cargo can not tell them from normal builds.
 .PHONY: coverage
-coverage: ## Measure test coverage of the workspace (requires cargo-llvm-cov).
-	cargo llvm-cov --workspace --no-report
-	cargo llvm-cov report
-	cargo llvm-cov report --html
+coverage: ## Measure test coverage including test packages (requires cargo-llvm-cov).
+	export CARGO_TARGET_DIR=$(CURDIR)/target/llvm-cov-target && \
+	eval "$$(cargo llvm-cov show-env --sh)" && \
+	cargo llvm-cov clean --workspace && \
+	cargo test --workspace && \
+	cargo test -p portaldi --features multi-thread && \
+	(cd packages/tests/env_always_async_test && cargo test) && \
+	(cd packages/tests/feature_futures_join_test && cargo test) && \
+	cargo llvm-cov report --ignore-filename-regex 'packages/tests/' && \
+	cargo llvm-cov report --html --ignore-filename-regex 'packages/tests/'
 
 .PHONY: udeps-all
 udeps-all: ## Find unused dependencies in all packages (requires nightly and cargo-udeps).

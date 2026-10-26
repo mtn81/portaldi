@@ -1,0 +1,55 @@
+error: Must be struct type
+ --> tests/compile_fail/cases/use_derive_di_portal.rs:4:6
+  |
+4 | enum Hoge1 {}
+  |      ^^^^^
+
+error: foo is not DI type
+ --> tests/compile_fail/cases/use_derive_di_portal.rs:8:10
+  |
+8 |     foo: Foo,
+  |          ^^^
+
+error: invalid inject attribute: expected identifier
+  --> tests/compile_fail/cases/use_derive_di_portal.rs:13:5
+   |
+13 |     #[inject(1 + 1)]
+   |     ^^^^^^^^^^^^^^^^
+
+error: invalid provide attribute: expected identifier
+  --> tests/compile_fail/cases/use_derive_di_portal.rs:18:1
+   |
+18 | #[provide(1 + 1)]
+   | ^^^^^^^^^^^^^^^^^
+
+error: invalid generic type: at least one trait is required for an object type
+  --> tests/compile_fail/cases/use_derive_di_portal.rs:22:14
+   |
+22 | struct Hoge5<'a> {
+   |              ^^
+
+error: foo is not DI type
+  --> tests/compile_fail/cases/use_derive_di_portal.rs:28:10
+   |
+28 |     foo: DI<[Foo]>,
+   |          ^^^^^^^^^
+
+error: foo is not DI type
+  --> tests/compile_fail/cases/use_derive_di_portal.rs:33:10
+   |
+33 |     foo: DI<dyn 'static + Send>,
+   |          ^^^^^^^^^^^^^^^^^^^^^^
+
+error: foo is not DI type
+  --> tests/compile_fail/cases/use_derive_di_portal.rs:44:14
+   |
+44 |         foo: DI,
+   |              ^^
+
+error[E0392]: lifetime parameter `'a` is never used
+  --> tests/compile_fail/cases/use_derive_di_portal.rs:22:14
+   |
+22 | struct Hoge5<'a> {
+   |              ^^ unused lifetime parameter
+   |
+   = help: consider removing `'a`, referring to it in a field, or using a marker such as `PhantomData`

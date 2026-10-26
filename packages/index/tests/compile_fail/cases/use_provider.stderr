@@ -18,3 +18,17 @@ error: must be on impl DIPortal or AsyncDIPortal block
    |
 12 | impl Hoge2 {}
    | ^^^^^^^^^^^^^
+
+error: self type name not found.
+  --> tests/compile_fail/cases/use_provider.rs:15:19
+   |
+15 | impl DIPortal for [Hoge2] {
+   |                   ^^^^^^^
+
+error: 'create_for_di' method must be defined.
+  --> tests/compile_fail/cases/use_provider.rs:24:1
+   |
+24 | / impl DIPortal for Hoge3 {
+25 | |     fn create() {}
+26 | | }
+   | |_^
