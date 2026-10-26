@@ -123,3 +123,65 @@ mod piyo {
 
     def_async_di_provider!(dyn Piyo2<String, ()>, |_| async { Piyo2Test {} });
 }
+
+#[tokio::test]
+async fn test_async_di_provider_raw() {
+    let c = &DIContainer::new();
+    assert_eq!(QuxProvider::di_on(c).await.name(), "A");
+
+    let c = &DIContainer::new();
+    c.put_if_absent(&DI::new(UseQuxB {}));
+    let qux1 = QuxProvider::di_on(c).await;
+    let qux2 = QuxProvider::di_on(c).await;
+    assert_eq!(qux1.name(), "B");
+    assert!(ptr_eq(qux1.as_ref(), qux2.as_ref()));
+
+    QuuxProvider::di_on(c).await;
+}
+
+use qux::*;
+
+mod qux {
+    use super::*;
+
+    pub trait Qux: DITarget {
+        fn name(&self) -> &'static str;
+    }
+
+    struct QuxA {}
+    impl Qux for QuxA {
+        fn name(&self) -> &'static str {
+            "A"
+        }
+    }
+
+    struct QuxB {}
+    impl Qux for QuxB {
+        fn name(&self) -> &'static str {
+            "B"
+        }
+    }
+
+    pub struct UseQuxB {}
+
+    // switch the implementation by a condition
+    def_async_di_provider_raw!(dyn Qux, |c| async move {
+        if c.get::<UseQuxB>().is_some() {
+            c.get_or_init_async(|| async { QuxB {} }).await
+        } else {
+            c.get_or_init_async(|| async { QuxA {} }).await
+        }
+    });
+
+    // a body that is not an async block is awaited as is
+    pub trait Quux: DITarget {}
+
+    struct QuuxImpl {}
+    impl Quux for QuuxImpl {}
+
+    async fn create_quux(c: &DIContainer) -> DI<dyn Quux> {
+        c.get_or_init_async(|| async { QuuxImpl {} }).await
+    }
+
+    def_async_di_provider_raw!(dyn Quux, |c| create_quux(c));
+}

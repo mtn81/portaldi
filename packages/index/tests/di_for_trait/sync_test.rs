@@ -121,3 +121,51 @@ mod piyo {
 
     def_di_provider!(dyn Piyo3<String, ()>, |_| { Piyo3Test {} });
 }
+
+#[test]
+fn test_di_provider_raw() {
+    let c = &DIContainer::new();
+    assert_eq!(QuxProvider::di_on(c).name(), "A");
+
+    let c = &DIContainer::new();
+    c.put_if_absent(&DI::new(UseQuxB {}));
+    let qux1 = QuxProvider::di_on(c);
+    let qux2 = QuxProvider::di_on(c);
+    assert_eq!(qux1.name(), "B");
+    assert!(ptr_eq(qux1.as_ref(), qux2.as_ref()));
+}
+
+use qux::*;
+
+mod qux {
+    use super::*;
+
+    pub trait Qux: DITarget {
+        fn name(&self) -> &'static str;
+    }
+
+    struct QuxA {}
+    impl Qux for QuxA {
+        fn name(&self) -> &'static str {
+            "A"
+        }
+    }
+
+    struct QuxB {}
+    impl Qux for QuxB {
+        fn name(&self) -> &'static str {
+            "B"
+        }
+    }
+
+    pub struct UseQuxB {}
+
+    // switch the implementation by a condition
+    def_di_provider_raw!(dyn Qux, |c| {
+        if c.get::<UseQuxB>().is_some() {
+            c.get_or_init(|| QuxB {})
+        } else {
+            c.get_or_init(|| QuxA {})
+        }
+    });
+}
