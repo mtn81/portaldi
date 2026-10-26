@@ -59,7 +59,7 @@ packages
 - ソースコード (`.rs`、`Cargo.toml` など) のコメントは英語で書く
 - コメントは必要最小限にする。コードを読めば分かる内容 (処理の言い換え、アサーションやエラーメッセージの繰り返しなど) は書かず、コードからは読み取れない理由や背景だけを書く
 - rustのバージョンが上がった場合などに、trybuildのstderrの出力がズレたらTRYBUILD=overwriteで再生成する
-- ドキュメントは packages/index/src/docs/ 配下に配置されている。機能を変更したらドキュメントと README.md にも反映する
+- ユーザガイドは packages/index/docs/ 配下の Markdown で書き、packages/index/src/docs.rs で `include_str!` して docs.rs に公開している (コード例は doctest として検査される)。機能ごとに章を分けており、機能を変更したら該当する章と README.md にも反映する
 - `packages/tests/` にテストパッケージを追加したら、Makefile の `test-all` / `udeps-all` / `coverage` / `clean-all` にも追記し、`Cargo.toml` に空の `[workspace]` を書く (親ディレクトリのワークスペースに誤って所属しないようにするため)
 - マクロが生成するコードだけが使う依存 (`async-trait`、`futures` など) を cargo-machete が未使用と誤検知する場合は、そのパッケージの `[package.metadata.cargo-machete]` の `ignored` に追加する
 - バージョンは手動で変更しない。GitHub Release 時に CI がルート `Cargo.toml` の `#tag:release-version` 行を書き換えて crates.io に公開する
