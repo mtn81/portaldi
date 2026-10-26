@@ -1,10 +1,6 @@
 [workspace]
 members = ["packages/index", "packages/core", "packages/macros"]
-exclude = [
-    "packages/tests/env_always_async_test",
-    "packages/tests/feature_futures_join_test",
-    "packages/tests/wasm_test",
-]
+exclude = ["packages/tests"]
 resolver = "2"
 
 [workspace.package]

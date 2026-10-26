@@ -4,6 +4,9 @@ version = "0.0.0"
 edition = "2021"
 publish = false
 
+# Empty table to keep this package out of any parent workspace
+[workspace]
+
 [dependencies]
 portaldi = { path = "../../index", features = [] }
 async-trait = "0.1"
