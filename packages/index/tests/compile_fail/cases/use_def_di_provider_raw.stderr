@@ -1,0 +1,8 @@
+error: invalid input format
+
+         = help: usage: def_di_provider_raw!([dyn] <TargetIdent>[<Generics>], |c| { <expression returning DI<Target>> })
+
+ --> tests/compile_fail/cases/use_def_di_provider_raw.rs:3:22
+  |
+3 | def_di_provider_raw!(Hoge);
+  |                      ^^^^

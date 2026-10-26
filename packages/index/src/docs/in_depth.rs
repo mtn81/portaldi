@@ -92,6 +92,18 @@
 //! * `#[provider(Self)]` generates the provider for the concrete type itself.
 //! * `#[provider(FooI)]` (or `#[provider(FooI<A>)]`) generates it for a trait object.
 //!
+//! ### `def_di_provider!` vs. `def_di_provider_raw!`
+//!
+//! [`def_di_provider!`](crate::def_di_provider) wraps the closure as `c.get_or_init(|| (closure)(c))`, so the
+//! closure returns a plain value and the container caches it by that value's concrete type.
+//! [`def_di_provider_raw!`](crate::def_di_provider_raw) (and [`def_async_di_provider_raw!`](crate::def_async_di_provider_raw))
+//! uses the closure as the body of `di_on` as is, so the closure must return a [`DI<T>`](crate::DI) by
+//! looking the component up itself (typically with [`DIContainer::get_or_init`](crate::DIContainer::get_or_init)).
+//!
+//! * Each branch's `DI<Concrete>` is coerced to `DI<Output>`, so different implementations can be returned.
+//! * Caching is done by whatever type the closure passes to the container, and the closure itself runs on every call.
+//! * The async variant expands the closure inline rather than calling it, so it must take exactly one argument (the container).
+//!
 //! ### [`Tagged`](crate::Tagged) internals
 //!
 //! [`Tagged<T, Tag>`](crate::Tagged) derefs to [`DI<T>`](crate::DI), so you can call the inner value's methods directly.

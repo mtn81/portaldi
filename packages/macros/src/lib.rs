@@ -8,8 +8,14 @@ use proc_macro_error::proc_macro_error;
 mod def_async_di_provider;
 def_async_di_provider::define!();
 
+mod def_async_di_provider_raw;
+def_async_di_provider_raw::define!();
+
 mod def_di_provider;
 def_di_provider::define!();
+
+mod def_di_provider_raw;
+def_di_provider_raw::define!();
 
 mod derive_di_portal;
 derive_di_portal::define!();

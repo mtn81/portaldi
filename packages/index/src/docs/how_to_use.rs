@@ -127,6 +127,69 @@
 //!
 //! ```
 //!
+//! #### Switching the implementation by a condition
+//! [`def_di_provider!`](crate::def_di_provider) requires the closure to return a single concrete type,
+//! so it can not return a different implementation depending on a condition.
+//! In that case, use [`def_di_provider_raw!`](crate::def_di_provider_raw), whose closure returns
+//! [`DI<T>`](crate::DI) directly by calling [`DIContainer::get_or_init`](crate::DIContainer::get_or_init) itself.
+//!
+//! ```
+//! use portaldi::*;
+//!
+//! pub trait FooI: DITarget {}
+//!
+//! struct FooA {}
+//! impl FooI for FooA {}
+//!
+//! struct FooB {}
+//! impl FooI for FooB {}
+//!
+//! def_di_provider_raw!(dyn FooI, |c| {
+//!     if std::env::var("USE_FOO_B").is_ok() {
+//!         c.get_or_init(|| FooB {})
+//!     } else {
+//!         c.get_or_init(|| FooA {})
+//!     }
+//! });
+//!
+//! // Use component
+//! FooIProvider::di();
+//!
+//! ```
+//!
+//! Components are cached by the concrete type passed to `get_or_init` (`FooA` / `FooB`), not by `dyn FooI`,
+//! and the condition is evaluated every time the provider is called.
+//!
+//! For async creation, use [`def_async_di_provider_raw!`](crate::def_async_di_provider_raw) with
+//! [`DIContainer::get_or_init_async`](crate::DIContainer::get_or_init_async):
+//!
+//! ```
+//! use portaldi::*;
+//! use async_trait::async_trait;
+//!
+//! pub trait FooI: DITarget {}
+//!
+//! struct FooA {}
+//! impl FooI for FooA {}
+//!
+//! struct FooB {}
+//! impl FooI for FooB {}
+//!
+//! def_async_di_provider_raw!(dyn FooI, |c| async {
+//!     if std::env::var("USE_FOO_B").is_ok() {
+//!         c.get_or_init_async(|| async { FooB {} }).await
+//!     } else {
+//!         c.get_or_init_async(|| async { FooA {} }).await
+//!     }
+//! });
+//!
+//! async {
+//!     // Use component
+//!     FooIProvider::di().await;
+//! };
+//!
+//! ```
+//!
 //! #### Async creation logic
 //! Use the [`def_async_di_provider!`](crate::def_async_di_provider) macro.
 //! Also annotate the dependency field with `#[inject(async)]`.

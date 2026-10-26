@@ -1,0 +1,14 @@
+error: invalid input format
+
+         = help: usage: def_async_di_provider_raw!([dyn] <TargetIdent>[<Generics>], |c| async { <expression returning DI<Target>> })
+
+ --> tests/compile_fail/cases/use_def_async_di_provider_raw.rs:3:28
+  |
+3 | def_async_di_provider_raw!(Hoge);
+  |                            ^^^^
+
+error: the closure must take exactly one argument (the container)
+ --> tests/compile_fail/cases/use_def_async_di_provider_raw.rs:7:33
+  |
+7 | def_async_di_provider_raw!(Foo, || async { DI::new(Foo {}) });
+  |                                 ^
