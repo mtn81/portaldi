@@ -1,7 +1,11 @@
 //! DI container functionality.
 
 use crate::{traits::DITarget, types::DI};
-use std::{any::Any, collections::HashMap, future::Future};
+use std::{
+    any::{Any, TypeId},
+    collections::HashMap,
+    future::Future,
+};
 
 #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
 use std::cell::RefCell;
@@ -11,11 +15,11 @@ use std::sync::RwLock;
 /// DI container holds component refs.
 #[derive(Debug)]
 pub struct DIContainer {
-    /// Hold components by its type name (FQTN).
+    /// Hold components by its TypeId.
     #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
-    components: RefCell<HashMap<String, DI<dyn Any>>>,
+    components: RefCell<HashMap<TypeId, DI<dyn Any>>>,
     #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
-    components: RwLock<HashMap<String, DI<dyn Any + Send + Sync>>>,
+    components: RwLock<HashMap<TypeId, DI<dyn Any + Send + Sync>>>,
 }
 
 impl Default for DIContainer {
@@ -42,7 +46,7 @@ impl DIContainer {
         #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
         let comps = self.components.read().unwrap();
         comps
-            .get(std::any::type_name::<T>())
+            .get(&TypeId::of::<T>())
             .map(|c| c.clone().downcast::<T>().unwrap())
     }
 
@@ -52,14 +56,14 @@ impl DIContainer {
         let mut components = self.components.borrow_mut();
         #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
         let mut components = self.components.write().unwrap();
-        let key = std::any::type_name::<T>();
+        let key = TypeId::of::<T>();
         let value = components
-            .get(key)
+            .get(&key)
             .map(|c| c.clone().downcast::<T>().unwrap());
         if let Some(c) = value {
             c
         } else {
-            components.insert(key.into(), c.clone());
+            components.insert(key, c.clone());
             c.clone()
         }
     }
