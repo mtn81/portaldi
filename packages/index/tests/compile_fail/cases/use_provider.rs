@@ -11,4 +11,18 @@ struct Hoge2;
 #[provider(Self)]
 impl Hoge2 {}
 
+#[provider(Self)]
+impl DIPortal for [Hoge2] {
+    fn create_for_di(_: &DIContainer) -> Self {
+        todo!()
+    }
+}
+
+struct Hoge3;
+
+#[provider(Self)]
+impl DIPortal for Hoge3 {
+    fn create() {}
+}
+
 fn main() {}

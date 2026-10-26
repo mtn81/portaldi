@@ -20,3 +20,30 @@ pub fn get<T: DITarget>() -> Option<DI<T>> {
 
     result
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::traits::DIPortal;
+
+    use super::*;
+
+    #[test]
+    fn test_get_unregistered() {
+        struct Hoge {}
+
+        assert!(get::<Hoge>().is_none());
+    }
+
+    #[test]
+    fn test_get_registered() {
+        struct Hoge {}
+        impl DIPortal for Hoge {
+            fn create_for_di(_: &DIContainer) -> Self {
+                Hoge {}
+            }
+        }
+
+        let hoge = Hoge::di();
+        assert!(DI::ptr_eq(&get::<Hoge>().unwrap(), &hoge));
+    }
+}

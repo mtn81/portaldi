@@ -100,3 +100,65 @@ impl DIContainer {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    use super::*;
+
+    #[test]
+    fn test_default_is_empty() {
+        struct Hoge {}
+
+        let c = DIContainer::default();
+        assert!(c.get::<Hoge>().is_none());
+    }
+
+    #[test]
+    fn test_put_if_absent_keeps_first() {
+        struct Hoge {}
+
+        let c = DIContainer::new();
+        let first = DI::new(Hoge {});
+        let second = DI::new(Hoge {});
+
+        assert!(DI::ptr_eq(&c.put_if_absent(&first), &first));
+        assert!(DI::ptr_eq(&c.put_if_absent(&second), &first));
+        assert!(DI::ptr_eq(&c.get::<Hoge>().unwrap(), &first));
+    }
+
+    #[test]
+    fn test_get_or_init_inits_once() {
+        struct Hoge {}
+
+        let c = DIContainer::new();
+        let count = AtomicUsize::new(0);
+        let init = || {
+            count.fetch_add(1, Ordering::SeqCst);
+            Hoge {}
+        };
+
+        let r1 = c.get_or_init(init);
+        let r2 = c.get_or_init(init);
+        assert!(DI::ptr_eq(&r1, &r2));
+        assert_eq!(count.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn test_get_or_init_async_inits_once() {
+        struct Hoge {}
+
+        let c = DIContainer::new();
+        let count = AtomicUsize::new(0);
+        let init = || async {
+            count.fetch_add(1, Ordering::SeqCst);
+            Hoge {}
+        };
+
+        let r1 = c.get_or_init_async(init).await;
+        let r2 = c.get_or_init_async(init).await;
+        assert!(DI::ptr_eq(&r1, &r2));
+        assert_eq!(count.load(Ordering::SeqCst), 1);
+    }
+}

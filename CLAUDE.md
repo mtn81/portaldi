@@ -33,7 +33,7 @@ make lint-fix
 # 全パッケージのテスト (ワークスペース外のテストパッケージ含む)
 make test-all
 
-# ワークスペースのテストカバレッジを計測 (表を表示し、HTML を target/llvm-cov/html に出力。cargo-llvm-cov が必要)
+# テストカバレッジを計測 (ワークスペースに加え、multi-thread feature とテストパッケージも合算する。wasm_test は対象外。表を表示し、HTML を target/llvm-cov/html に出力。cargo-llvm-cov が必要)
 make coverage
 
 # 全パッケージの未使用依存をコンパイルして厳密にチェック (nightly と cargo-udeps が必要)
@@ -60,7 +60,7 @@ packages
 - コメントは必要最小限にする。コードを読めば分かる内容 (処理の言い換え、アサーションやエラーメッセージの繰り返しなど) は書かず、コードからは読み取れない理由や背景だけを書く
 - rustのバージョンが上がった場合などに、trybuildのstderrの出力がズレたらTRYBUILD=overwriteで再生成する
 - ドキュメントは packages/index/src/docs/ 配下に配置されている。機能を変更したらドキュメントと README.md にも反映する
-- `packages/tests/` にテストパッケージを追加したら、Makefile の `test-all` / `udeps-all` / `clean-all` にも追記し、`Cargo.toml` に空の `[workspace]` を書く (親ディレクトリのワークスペースに誤って所属しないようにするため)
+- `packages/tests/` にテストパッケージを追加したら、Makefile の `test-all` / `udeps-all` / `coverage` / `clean-all` にも追記し、`Cargo.toml` に空の `[workspace]` を書く (親ディレクトリのワークスペースに誤って所属しないようにするため)
 - マクロが生成するコードだけが使う依存 (`async-trait`、`futures` など) を cargo-machete が未使用と誤検知する場合は、そのパッケージの `[package.metadata.cargo-machete]` の `ignored` に追加する
 - バージョンは手動で変更しない。GitHub Release 時に CI がルート `Cargo.toml` の `#tag:release-version` 行を書き換えて crates.io に公開する
 - `portaldi` クレートでは、再エクスポートとドキュメントのみ定義する
