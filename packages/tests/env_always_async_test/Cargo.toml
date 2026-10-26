@@ -4,6 +4,13 @@ version = "0.0.0"
 edition = "2021"
 publish = false
 
+# Empty table to keep this package out of any parent workspace
+[workspace]
+
+# Required by the code that portaldi macros generate.
+[package.metadata.cargo-machete]
+ignored = ["async-trait"]
+
 [dependencies]
 portaldi = { path = "../../index" }
 async-trait = "0.1"

@@ -8,6 +8,11 @@ runs:
       with:
         wasmtime-version: "48.0.1"
 
+    - name: Install cargo-machete
+      uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-machete
+
     - name: Format and lint check
       shell: bash
       run: make lint
