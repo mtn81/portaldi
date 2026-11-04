@@ -5,6 +5,7 @@
 //! * Natively async support
 //!   * Support for asynchronous component creation.
 //!   * Components and traits must be `thread-safe` (`Sync + Send`) in non Wasm target.
+//!     In Wasm target, a single-threaded container is used unless the `multi-thread` feature is enabled.
 //!
 //! * Ergonomic apis
 //!   * In most cases, you can use target types directly instead of using containers.  

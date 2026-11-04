@@ -66,6 +66,9 @@ pub fn build_provider_by_env(ident: &Ident, is_async: bool) -> TokenStream {
     }
 }
 
+// Must match the `single_thread` alias of portaldi-core. The alias is not
+// visible in the user's crate where this code is compiled, so the target
+// condition is spelled out, while `multi-thread` is resolved here at expansion.
 pub fn async_trait_attr() -> proc_macro2::TokenStream {
     if cfg!(feature = "multi-thread") {
         quote! {

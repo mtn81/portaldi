@@ -10,6 +10,9 @@ description = "Core functionalities for portaldi."
 [dependencies]
 async-trait = "0.1"
 
+[build-dependencies]
+cfg_aliases = "0.2.1"
+
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
 
