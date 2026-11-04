@@ -1,5 +1,5 @@
 [workspace]
-members = ["packages/index", "packages/core", "packages/macros"]
+members = ["packages/index", "packages/core", "packages/macro"]
 exclude = ["packages/tests"]
 resolver = "2"
 
@@ -16,6 +16,6 @@ repository = "https://github.com/mtn81/portaldi"
 path = "packages/core"
 version = "0.7.1" #tag:release-version
 
-[workspace.dependencies.portaldi-macros]
-path = "packages/macros"
+[workspace.dependencies.portaldi-macro]
+path = "packages/macro"
 version = "0.7.1" #tag:release-version

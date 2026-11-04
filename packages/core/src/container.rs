@@ -7,18 +7,18 @@ use std::{
     future::Future,
 };
 
-#[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
+#[cfg(single_thread)]
 use std::cell::RefCell;
-#[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
+#[cfg(not(single_thread))]
 use std::sync::RwLock;
 
 /// DI container holds component refs.
 #[derive(Debug)]
 pub struct DIContainer {
     /// Hold components by its TypeId.
-    #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
+    #[cfg(single_thread)]
     components: RefCell<HashMap<TypeId, DI<dyn Any>>>,
-    #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
+    #[cfg(not(single_thread))]
     components: RwLock<HashMap<TypeId, DI<dyn Any + Send + Sync>>>,
 }
 
@@ -32,18 +32,18 @@ impl DIContainer {
     /// Create new instance.
     pub fn new() -> DIContainer {
         DIContainer {
-            #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
+            #[cfg(single_thread)]
             components: RefCell::new(HashMap::new()),
-            #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
+            #[cfg(not(single_thread))]
             components: RwLock::new(HashMap::new()),
         }
     }
 
     /// Get a component by type.
     pub fn get<T: DITarget>(&self) -> Option<DI<T>> {
-        #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
+        #[cfg(single_thread)]
         let comps = self.components.borrow();
-        #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
+        #[cfg(not(single_thread))]
         let comps = self.components.read().unwrap();
         comps
             .get(&TypeId::of::<T>())
@@ -52,9 +52,9 @@ impl DIContainer {
 
     /// Put a component into the container.
     pub fn put_if_absent<T: DITarget>(&self, c: &DI<T>) -> DI<T> {
-        #[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
+        #[cfg(single_thread)]
         let mut components = self.components.borrow_mut();
-        #[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
+        #[cfg(not(single_thread))]
         let mut components = self.components.write().unwrap();
         let key = TypeId::of::<T>();
         let value = components

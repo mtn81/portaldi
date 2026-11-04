@@ -1,5 +1,5 @@
 [package]
-name = "portaldi-macros"
+name = "portaldi-macro"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

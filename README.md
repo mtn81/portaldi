@@ -54,7 +54,9 @@ PortalDI is a ergonomic, lightweight and compile-time dependency injection (DI) 
 
 * Wasm support.
   
-  * In Wasm target, PortalDI compiles DI container as Rc compatible.
+  * In Wasm target, PortalDI uses a single-threaded (Rc based) DI container, so `!Send` components are allowed.
+
+  * For Wasm targets with threads (e.g. `wasm32-wasip1-threads`), enable the `multi-thread` feature to use the thread-safe container.
 
   * In non Wasm target, components and traits must be `thread-safe` (`Sync + Send`).
 

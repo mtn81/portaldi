@@ -7,7 +7,7 @@ that are read while the macros expand.
 
 | Feature | Effect |
 |---|---|
-| `multi-thread` | Force the thread-safe container ([`DI<T>`](crate::DI) = `Arc<T>`, [`DITarget`](crate::DITarget)`: Send + Sync`) even on `wasm32`. On non-wasm targets the thread-safe container is always used, so this flag only matters for `wasm32`. |
+| `multi-thread` | Use the thread-safe container ([`DI<T>`](crate::DI) = `Arc<T>`, [`DITarget`](crate::DITarget)`: Send + Sync`) on `wasm32` instead of the single-threaded one. Required on `wasm32` targets with threads. On non-wasm targets the thread-safe container is always used, so this flag only matters for `wasm32`. |
 | `futures-join` | When a struct has more than one `#[inject(async)]` field, create those fields concurrently with `futures::join!` instead of sequentially. Requires the `futures` crate as a dependency of your crate. |
 
 ## Environment variables
@@ -36,9 +36,16 @@ on its own. Editing `.cargo/config.toml` does; otherwise run `cargo clean`.
 On native targets [`DI<T>`](crate::DI) is `Arc<T>`, and every
 [`DITarget`](crate::DITarget) must be `Send + Sync + 'static`.
 
-On `wasm32` (without the `multi-thread` feature) [`DI<T>`](crate::DI) is `Rc<T>`
-and the `Send + Sync` bound is dropped, so `!Send` components are allowed. The
-global container is then kept per thread. Enable `multi-thread` to keep the
+On `wasm32` without the `multi-thread` feature, PortalDI uses a single-threaded
+container: [`DI<T>`](crate::DI) is `Rc<T>` and the `Send + Sync` bound is
+dropped, so `!Send` components (such as ones holding JS values) are allowed.
+The global container is kept per thread. Enable `multi-thread` to use the
 `Arc` / `Send + Sync` model on `wasm32` as well.
+
+Enable `multi-thread` on `wasm32` targets with threads (such as
+`wasm32-wasip1-threads`, or builds with the `atomics` target feature).
+Otherwise each thread gets its own global container, so singletons are not
+shared between threads. PortalDI does not switch automatically, because
+threads can not be detected with `cfg` on stable Rust.
 
 Next: [Errors](crate::docs::errors)

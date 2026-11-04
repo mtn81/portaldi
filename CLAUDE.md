@@ -49,7 +49,7 @@ make clean-all
 packages
 ├── index    クレートのAPIを公開とドキュメント (portaldi)
 ├── core     DIコンテナなどのコアになる部品の実装 (portaldi-core)
-├── macros   proc-macroの実装 (portaldi-macros)
+├── macro    proc-macroの実装 (portaldi-macro)
 └── tests    各種設定を変えながらのテスト(独立したパッケージにする必要があるので、cargoのワークスペースからは除外)
 ```
 
@@ -65,7 +65,7 @@ packages
 - バージョンは手動で変更しない。GitHub Release 時に CI がルート `Cargo.toml` の `#tag:release-version` 行を書き換えて crates.io に公開する
 - `portaldi` クレートでは、再エクスポートとドキュメントのみ定義する
 - `portaldi-core` クレートでは、コアな機能 (trait、struct, function など)を実装する
-- `portaldi-macros` クレートでは、手続き型マクロを実装する (`.claude/rules/impl_macro.md` を参照)
+- `portaldi-macro` クレートでは、手続き型マクロを実装する (`.claude/rules/impl_macro.md` を参照)
 
 ## レビュー
 

@@ -3,9 +3,9 @@
 use std::{marker::PhantomData, ops::Deref};
 
 /// Represents depencency (component) type.
-#[cfg(any(not(target_arch = "wasm32"), feature = "multi-thread"))]
+#[cfg(not(single_thread))]
 pub type DI<T> = std::sync::Arc<T>;
-#[cfg(all(target_arch = "wasm32", not(feature = "multi-thread")))]
+#[cfg(single_thread)]
 pub type DI<T> = std::rc::Rc<T>;
 
 /// Tagged type.
