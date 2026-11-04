@@ -1,9 +1,9 @@
 ---
 paths:
-  - "packages/macros/**"
+  - "packages/macro/**"
 ---
 
-# portaldi-macros の実装規約
+# portaldi-macro の実装規約
 
 可読性の観点から、1マクロが1ファイルになるように分割して、書き方を以下の例の通りに揃える。
 

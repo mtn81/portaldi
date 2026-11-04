@@ -34,6 +34,6 @@
 //!
 
 pub use portaldi_core::{container::*, global, traits::*, types::*};
-pub use portaldi_macros::*;
+pub use portaldi_macro::*;
 
 pub mod docs;

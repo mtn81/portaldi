@@ -10,7 +10,7 @@ readme = "../../README.md"
 keywords = ["di", "ioc", "dependency", "inversion", "dependency-injection"]
 
 [dependencies]
-portaldi-macros.workspace = true
+portaldi-macro.workspace = true
 portaldi-core.workspace = true
 
 [dev-dependencies]
@@ -20,5 +20,5 @@ trybuild = "1.0.111"
 
 [features]
 default = []
-futures-join = ["portaldi-macros/futures-join"]
-multi-thread = ["portaldi-core/multi-thread", "portaldi-macros/multi-thread"]
+futures-join = ["portaldi-macro/futures-join"]
+multi-thread = ["portaldi-core/multi-thread", "portaldi-macro/multi-thread"]
